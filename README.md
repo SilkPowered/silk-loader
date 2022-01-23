@@ -8,7 +8,7 @@ The loader for mods under Fabric. It provides mod loading facilities and useful 
 - [x] Spigot Working
 - [ ] Mixin Mods
 - [x] Mods not using mixin
-
+- [ ] Vanilla compatibility ( go to upstream! )
 ## License
 
 Copyright FabricMC, saltedfishclub.  
