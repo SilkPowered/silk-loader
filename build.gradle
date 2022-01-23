@@ -10,8 +10,6 @@ plugins {
 	id 'java-library'
 	id 'eclipse'
 	id 'maven-publish'
-	id 'checkstyle'
-	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'fabric-loom' version '0.10-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
@@ -27,7 +25,6 @@ def ENV = System.getenv()
 allprojects {
 	apply plugin: 'java-library'
 	apply plugin: 'eclipse'
-	apply plugin: 'checkstyle'
 
 	def constantsSource = rootProject.file("src/main/java/net/fabricmc/loader/impl/FabricLoaderImpl.java").text
 	version = (constantsSource =~ /\s+VERSION\s*=\s*"(.*)";/)[0][1] + (ENV.GITHUB_ACTIONS ? "" : "+local")
@@ -257,21 +254,6 @@ task javadocJar(type: Jar) {
 }
 
 build.dependsOn javadocJar
-
-allprojects {
-	checkstyle {
-		configFile = project.rootProject.file("checkstyle.xml")
-		toolVersion = '8.44'
-	}
-
-	license {
-		header project.rootProject.file("HEADER")
-		include '**/*.java'
-
-		// Exclude gson since it is google's code, we just modify and bundle it
-		exclude '**/lib/gson/*.java'
-	}
-}
 
 // Causes more trouble than its worth
 tasks.withType(GenerateModuleMetadata) {
