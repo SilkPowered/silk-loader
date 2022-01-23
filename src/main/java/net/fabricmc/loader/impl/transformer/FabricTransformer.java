@@ -70,6 +70,7 @@ public final class FabricTransformer {
 		}
 
 		classReader.accept(visitor, 0);
+		// TODO: REMAP HERE
 		return classWriter.toByteArray();
 	}
 }
