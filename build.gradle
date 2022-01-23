@@ -345,7 +345,12 @@ github.mustRunAfter checkVersion
 
 
 task move {
-	Files.deleteIfExists(Paths.get("/home/icybear/fabric/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12+local-fat.jar"))
-	Files.copy(Paths.get("/home/icybear/IdeaProjects/fabric-loader/build/libs/fabric-loader-0.12.12+local-fat.jar")
-			,Paths.get("/home/icybear/fabric/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12+local-fat.jar"))
+	Files.deleteIfExists(Paths.get("${projectDir}/run/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12.jar"))
+
+	if (Files.exists(Paths.get("${projectDir}/build/libs/fabric-loader-0.12.12+local-fat.jar"))) {
+		Files.copy(Paths.get("${projectDir}/build/libs/fabric-loader-0.12.12+local-fat.jar"),
+				Paths.get("${projectDir}/run/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12.jar"))
+	}
 }
+
+move.dependsOn(build)

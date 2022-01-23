@@ -21,6 +21,8 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+
+	implementation(files("libs/server.jar"))
 }
 
 tasks.withType(JavaCompile).configureEach {

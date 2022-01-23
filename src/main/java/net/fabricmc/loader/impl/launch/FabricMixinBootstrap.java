@@ -16,11 +16,16 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import net.fabricmc.mapping.tree.TinyMappingFactory;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.FabricUtil;
@@ -65,7 +70,21 @@ public final class FabricMixinBootstrap {
 
 					try {
 						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+
 						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+
+						// silk.
+//						BufferedReader readerSilkTiny = new BufferedReader(new FileReader("silk-1.18.1.tiny"));
+//						TinyTree silkMappings = TinyMappingFactory.loadLegacy(readerSilkTiny);
+//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(silkMappings, "intermediary", "bukkit");
+
+//						BufferedReader readerSilkTinyN2B = new BufferedReader(new FileReader("silk-1.18.1.n2b.tiny"));
+//						TinyTree silkMappingsN2B = TinyMappingFactory.loadLegacy(readerSilkTinyN2B);
+//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(silkMappingsN2B, "named", "bukkit");
+
+//						System.out.println(MixinEnvironment.getDefaultEnvironment().getRemappers().toString());
+						// silk end.
+
 						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
 					} catch (Exception e) {
 						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");

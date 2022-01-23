@@ -53,6 +53,8 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
+import org.spongepowered.asm.service.MixinService;
+
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
 
@@ -82,6 +84,14 @@ public final class Knot extends FabricLauncherBase {
 
 	public Knot(EnvType type) {
 		this.envType = type;
+
+		// silk: Try to Proof of Concept.
+//		System.setProperty("mixin.debug", "true");
+//		System.setProperty("mixin.env.remapRefMap", "true");
+//		File file = new File("silk-1.18.1.srg");
+//		assert file.exists();
+//		System.setProperty("mixin.env.refMapRemappingFile", file.toPath().toString());
+//		System.setProperty("mixin.env.refMapRemappingFileEnv", "notch");
 	}
 
 	protected ClassLoader init(String[] args) {
