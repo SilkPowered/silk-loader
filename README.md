@@ -3,6 +3,12 @@ Silk
 
 The loader for mods under Fabric. It provides mod loading facilities and useful abstractions for other mods to use, which is compatible with spigot now.
 
+## Status
+
+- [x] Spigot Working
+- [ ] Mixin Mods
+- [x] Mods not using mixin
+
 ## License
 
 Copyright FabricMC, saltedfishclub.  
