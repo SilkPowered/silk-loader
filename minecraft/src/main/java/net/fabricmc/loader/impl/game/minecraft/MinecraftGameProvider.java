@@ -146,8 +146,8 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public boolean isObfuscated() {
-		return true; // generally yes...
-	}
+		return false; // generally yes...
+	} // silk: we'll obfuscate mod classes to spigot. so don't deobfuscate spigot classes
 
 	@Override
 	public boolean requiresUrlClassLoader() {
@@ -411,6 +411,8 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		try {
+			// silk: we should load spigot first.
+			targetClass = "org.bukkit.craftbukkit.Main";
 			Class<?> c = loader.loadClass(targetClass);
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) arguments.toArray());

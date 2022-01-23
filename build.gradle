@@ -306,6 +306,9 @@ def getBranch() {
 import org.kohsuke.github.GHReleaseBuilder
 import org.kohsuke.github.GitHub
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
 task github(dependsOn: publish) {
 	onlyIf {
 		ENV.GITHUB_TOKEN
@@ -339,3 +342,10 @@ task checkVersion {
 
 publish.mustRunAfter checkVersion
 github.mustRunAfter checkVersion
+
+
+task move {
+	Files.deleteIfExists(Paths.get("/home/icybear/fabric/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12+local-fat.jar"))
+	Files.copy(Paths.get("/home/icybear/IdeaProjects/fabric-loader/build/libs/fabric-loader-0.12.12+local-fat.jar")
+			,Paths.get("/home/icybear/fabric/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12+local-fat.jar"))
+}

@@ -145,7 +145,7 @@ final class LibClassifier {
 	enum Lib {
 		MC_CLIENT(EnvType.CLIENT, "net/minecraft/client/main/Main.class", "net/minecraft/client/MinecraftApplet.class", "com/mojang/minecraft/MinecraftApplet.class"),
 		MC_SERVER(EnvType.SERVER, "net/minecraft/server/Main.class", "net/minecraft/server/MinecraftServer.class", "com/mojang/minecraft/server/MinecraftServer.class"),
-		MC_BUNDLER(EnvType.SERVER, "net/minecraft/bundler/Main.class"),
+		MC_BUNDLER(EnvType.SERVER, "org/bukkit/craftbukkit/bootstrap/Main.class"), //silk craftbukkit
 		REALMS(EnvType.CLIENT, "realmsVersion"),
 		MODLOADER("ModLoader"),
 		LOG4J_API("org/apache/logging/log4j/LogManager.class"),

@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -92,7 +93,10 @@ public class EntrypointPatch extends GamePatch {
 
 		if (gameEntrypoint == null) {
 			// main method searches
-			MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V") && isPublicStatic(method.access));
+			MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") &&
+					method.desc.equals("(Ljoptsimple/OptionSet;)V")
+					//method.desc.equals("([Ljava/lang/String;)V")
+					&& isPublicStatic(method.access));
 
 			if (mainMethod == null) {
 				throw new RuntimeException("Could not find main method in " + entrypoint + "!");
@@ -207,7 +211,11 @@ public class EntrypointPatch extends GamePatch {
 				}
 			}
 		} else {
-			gameMethod = findMethod(mainClass, (method) -> method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V") && isPublicStatic(method.access));
+			gameMethod = findMethod(mainClass, (method) -> method.name.equals("main")
+					&&
+					//method.desc.equals("([Ljava/lang/String;)V")
+					method.desc.equals("(Ljoptsimple/OptionSet;)V") // silk: duplicate code?
+					&& isPublicStatic(method.access));
 		}
 
 		if (gameMethod == null) {
@@ -347,8 +355,8 @@ public class EntrypointPatch extends GamePatch {
 							if (constructorType.getArgumentTypes().length <= 0) {
 								return false;
 							}
-
-							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+							//return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljoptsimple/OptionSet;"); // silk: spigot patched here
 						}
 
 						return false;

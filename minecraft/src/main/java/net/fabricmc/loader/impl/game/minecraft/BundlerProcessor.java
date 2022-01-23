@@ -49,7 +49,7 @@ final class BundlerProcessor {
 					Class<?> c = findLoadedClass(name);
 
 					if (c == null) {
-						if (name.startsWith("net.minecraft.")) {
+						if (name.startsWith("org.bukkit.")) { // silk: craftbukkit
 							URL url = getResource(LoaderUtil.getClassFileName(name));
 
 							if (url != null) {
