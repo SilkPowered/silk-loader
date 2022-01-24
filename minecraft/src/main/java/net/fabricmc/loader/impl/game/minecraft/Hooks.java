@@ -35,12 +35,13 @@ public final class Hooks {
 	public static final String VANILLA = "vanilla";
 
 	public static String insertBranding(final String brand) {
-		if (brand == null || brand.isEmpty()) {
-			Log.warn(LogCategory.GAME_PROVIDER, "Null or empty branding found!", new IllegalStateException());
-			return FABRIC;
-		}
-
-		return VANILLA.equals(brand) ? FABRIC : brand + ',' + FABRIC;
+//		if (brand == null || brand.isEmpty()) {
+//			Log.warn(LogCategory.GAME_PROVIDER, "Null or empty branding found!", new IllegalStateException());
+//			return FABRIC;
+//		}
+//
+//		return VANILLA.equals(brand) ? FABRIC : brand + ',' + FABRIC;
+		return "Silk";	// Silk.
 	}
 
 	public static void startClient(File runDir, Object gameInstance) {

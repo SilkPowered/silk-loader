@@ -264,7 +264,8 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public String getTargetNamespace() {
 		// TODO: Won't work outside of Yarn
-		return isDevelopment ? "named" : "intermediary";
+//		return isDevelopment ? "named" : "intermediary";
+		return "bukkit";	// Silk.
 	}
 
 	@Override

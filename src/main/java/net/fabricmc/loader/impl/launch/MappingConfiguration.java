@@ -17,9 +17,11 @@
 package net.fabricmc.loader.impl.launch;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.jar.Attributes.Name;
@@ -65,7 +67,8 @@ public final class MappingConfiguration {
 	}
 
 	public String getTargetNamespace() {
-		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
+//		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
+		return "bukkit";
 	}
 
 	public boolean requiresPackageAccessHack() {
@@ -76,7 +79,13 @@ public final class MappingConfiguration {
 	private void initialize() {
 		if (initialized) return;
 
-		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+//		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		URL url = null;
+		try {
+			url = new File("silk-1.18.1.tiny").toURI().toURL();
+		} catch (MalformedURLException ex) {
+			ex.printStackTrace();
+		}
 
 		if (url != null) {
 			try {
@@ -93,7 +102,8 @@ public final class MappingConfiguration {
 
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 					long time = System.currentTimeMillis();
-					mappings = TinyMappingFactory.loadWithDetection(reader);
+//					mappings = TinyMappingFactory.loadWithDetection(reader);
+					mappings = TinyMappingFactory.loadLegacy(reader);
 					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
 				}
 			} catch (IOException | ZipError e) {

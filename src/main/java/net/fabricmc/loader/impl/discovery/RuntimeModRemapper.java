@@ -182,7 +182,9 @@ public final class RuntimeModRemapper {
 
 	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
-		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
+//		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
+		// Silk.
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "bukkit");
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
 		accessWidenerReader.read(input, "intermediary");
 		return writer.write();
