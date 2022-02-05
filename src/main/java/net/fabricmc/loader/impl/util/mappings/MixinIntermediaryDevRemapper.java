@@ -60,14 +60,14 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 
 			String prev = nameMap.putIfAbsent(nameFrom, nameTo);
 
-			if (prev != null && prev != ambiguousName && !prev.equals(nameTo)) {
+			if (prev != null && !prev.equals(ambiguousName) && !prev.equals(nameTo)) {	// Silk: Change != between two strings to !equals().
 				nameDescMap.put(nameFrom, ambiguousName);
 			}
 
 			String key = getNameDescKey(nameFrom, descFrom);
 			prev = nameDescMap.putIfAbsent(key, nameTo);
 
-			if (prev != null && prev != ambiguousName && !prev.equals(nameTo)) {
+			if (prev != null && !prev.equals(ambiguousName) && !prev.equals(nameTo)) {	// Silk: Change != between two strings to !equals().
 				nameDescMap.put(key, ambiguousName);
 			}
 		}
@@ -99,6 +99,14 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 		}
 	}
 
+	/**
+	 * Map method name.
+	 * Commented by Silk.
+	 * @param owner Class of the method.
+	 * @param name Method name.
+	 * @param desc Method desc.
+	 * @return Method mapped name.
+	 */
 	@Override
 	public String mapMethodName(String owner, String name, String desc) {
 		// handle unambiguous values early
@@ -112,7 +120,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 			}
 
 			if (newName != null) {
-				if (newName == ambiguousName) {
+				if (newName.equals(ambiguousName)) {	// Silk: Change == between two strings to equals().
 					if (owner == null) {
 						throwAmbiguousLookup("method", name, desc);
 					}
@@ -178,6 +186,15 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 		return name;
 	}
 
+
+	/**
+	 * Map field name.
+	 * Commented by Silk.
+	 * @param owner Class of the field.
+	 * @param name Field name.
+	 * @param desc Field desc.
+	 * @return Field mapped name.
+	 */
 	@Override
 	public String mapFieldName(String owner, String name, String desc) {
 		// handle unambiguous values early
@@ -185,7 +202,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 			String newName = nameDescFieldLookup.get(getNameDescKey(name, desc));
 
 			if (newName != null) {
-				if (newName == ambiguousName) {
+				if (newName.equals(ambiguousName)) {	// Silk: Change == between two strings to equals().
 					if (owner == null) {
 						throwAmbiguousLookup("field", name, desc);
 					}

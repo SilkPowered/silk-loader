@@ -1,7 +1,7 @@
 apply plugin: "fabric-loom"
 
-sourceCompatibility = JavaVersion.VERSION_16
-targetCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 loom {
 	runConfigs.configureEach {
@@ -23,6 +23,20 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
 
 	implementation(files("libs/server.jar"))
+
+	// Silk: For developing.
+	if (file("run/bundler/libraries").exists()) {
+		for (file in fileTree("run/bundler/libraries")) {
+			implementation(files(file))
+		}
+	}
+
+	if (file("run/bundler/versions").exists()) {
+		for (file in fileTree("run/bundler/versions")) {
+			implementation(files(file))
+		}
+	}
+	// Silk end.
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryToBukkitRemapper;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -58,41 +59,55 @@ public final class FabricMixinBootstrap {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
 
-		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-			TinyTree mappings = mappingConfiguration.getMappings();
+		// Silk: We are always running on production mode.
+//		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+//			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
+//			TinyTree mappings = mappingConfiguration.getMappings();
+//
+//			if (mappings != null) {
+//				List<String> namespaces = mappings.getMetadata().getNamespaces();
+//
+//				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
+//					System.setProperty("mixin.env.remapRefMap", "true");
+//
+//					try {
+//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+//						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+//
+//						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
+//					} catch (Exception e) {
+//						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}
 
-			if (mappings != null) {
-				List<String> namespaces = mappings.getMetadata().getNamespaces();
+		MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
+		TinyTree mappings = mappingConfiguration.getMappings();
 
-				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
-					System.setProperty("mixin.env.remapRefMap", "true");
+		if (mappings != null) {
+			List<String> namespaces = mappings.getMetadata().getNamespaces();
 
-					try {
-						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+			if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
+				System.setProperty("mixin.env.remapRefMap", "true");
 
-						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+				try {
+					// Silk: Add our remapper to chain.
+					MixinIntermediaryToBukkitRemapper remapper = new MixinIntermediaryToBukkitRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 
-						// silk.
-//						BufferedReader readerSilkTiny = new BufferedReader(new FileReader("silk-1.18.1.tiny"));
-//						TinyTree silkMappings = TinyMappingFactory.loadLegacy(readerSilkTiny);
-//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(silkMappings, "intermediary", "bukkit");
+					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings for mixin remapper!");
 
-//						BufferedReader readerSilkTinyN2B = new BufferedReader(new FileReader("silk-1.18.1.n2b.tiny"));
-//						TinyTree silkMappingsN2B = TinyMappingFactory.loadLegacy(readerSilkTinyN2B);
-//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(silkMappingsN2B, "named", "bukkit");
-
-//						System.out.println(MixinEnvironment.getDefaultEnvironment().getRemappers().toString());
-						// silk end.
-
-						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
-					} catch (Exception e) {
-						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");
-						e.printStackTrace();
-					}
+//					System.out.println(MixinEnvironment.getDefaultEnvironment().getRemappers().toString());
+				} catch (Exception e) {
+					Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
+					e.printStackTrace();
 				}
 			}
 		}
+		// Silk end.
+
 
 		MixinBootstrap.init();
 

@@ -68,18 +68,20 @@ public final class MappingConfiguration {
 
 	public String getTargetNamespace() {
 //		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
-		return "bukkit";
+		return "bukkit";	// Silk: We always run on production environment.
 	}
 
 	public boolean requiresPackageAccessHack() {
 		// TODO
-		return getTargetNamespace().equals("named");
+//		return getTargetNamespace().equals("named");
+		return getTargetNamespace().equals("bukkit");	// Silk: Change named to Bukkit.
 	}
 
 	private void initialize() {
 		if (initialized) return;
 
 //		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		// Silk: Get mappings from file.
 		URL url = null;
 		try {
 			url = new File("silk-1.18.1.tiny").toURI().toURL();
