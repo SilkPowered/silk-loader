@@ -80,14 +80,15 @@ public final class MappingConfiguration {
 	private void initialize() {
 		if (initialized) return;
 
-//		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
 		// Silk: Get mappings from file.
+//		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
 		URL url = null;
 		try {
 			url = new File("silk-1.18.1.tiny").toURI().toURL();
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		}
+		// Silk end.
 
 		if (url != null) {
 			try {

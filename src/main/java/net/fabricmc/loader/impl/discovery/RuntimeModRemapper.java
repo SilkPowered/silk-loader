@@ -28,9 +28,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 import org.objectweb.asm.commons.Remapper;
 
@@ -63,10 +67,18 @@ public final class RuntimeModRemapper {
 
 		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
+		// Silk: Add Mixin Extension Hard remapping.
+		Set<MixinExtension.AnnotationTarget> annotationTargets = new HashSet<>();
+		annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
+//		annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
+		MixinExtension mixinExtension = new MixinExtension(annotationTargets);
+
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), "intermediary", launcher.getTargetNamespace()))
 				.renameInvalidLocals(false)
+				.extension(mixinExtension)	// Silk: Attach to builder.
 				.build();
+		// Silk end.
 
 		try {
 			remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
@@ -184,7 +196,8 @@ public final class RuntimeModRemapper {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
 //		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
 		// Silk.
-		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "bukkit");
+		FabricLauncher launcher = FabricLauncherBase.getLauncher();
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", launcher.getTargetNamespace());
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
 		accessWidenerReader.read(input, "intermediary");
 		return writer.write();
