@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 import org.objectweb.asm.commons.Remapper;
@@ -54,7 +55,8 @@ import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 public final class RuntimeModRemapper {
-	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
+	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir,
+			MappingConfiguration mapping, String originNamespace, String targetNamespace) {
 		List<ModCandidate> modsToRemap = new ArrayList<>();
 
 		for (ModCandidate mod : modCandidates) {
@@ -65,7 +67,7 @@ public final class RuntimeModRemapper {
 
 		if (modsToRemap.isEmpty()) return;
 
-		FabricLauncher launcher = FabricLauncherBase.getLauncher();
+//		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
 		// Silk: Add Mixin Extension Hard remapping.
 		Set<MixinExtension.AnnotationTarget> annotationTargets = new HashSet<>();
@@ -74,7 +76,7 @@ public final class RuntimeModRemapper {
 		MixinExtension mixinExtension = new MixinExtension(annotationTargets);
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
-				.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), "intermediary", launcher.getTargetNamespace()))
+				.withMappings(TinyRemapperMappingsHelper.create(mapping.getMappings(), originNamespace, targetNamespace))
 				.renameInvalidLocals(false)
 				.extension(mixinExtension)	// Silk: Attach to builder.
 				.build();
@@ -142,7 +144,7 @@ public final class RuntimeModRemapper {
 
 					try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(info.inputPath, false)) {
 						FileSystem fs = jarFs.get();
-						info.accessWidener = remapAccessWidener(Files.readAllBytes(fs.getPath(accessWidener)), remapper.getRemapper());
+						info.accessWidener = remapAccessWidener(Files.readAllBytes(fs.getPath(accessWidener)), remapper.getRemapper(), originNamespace, targetNamespace);
 					}
 				}
 			}
@@ -192,14 +194,14 @@ public final class RuntimeModRemapper {
 		}
 	}
 
-	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
+	private static byte[] remapAccessWidener(byte[] input, Remapper remapper, String originNamespace, String targetNamespace) {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
 //		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
 		// Silk.
 		FabricLauncher launcher = FabricLauncherBase.getLauncher();
-		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", launcher.getTargetNamespace());
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, originNamespace, targetNamespace);
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
-		accessWidenerReader.read(input, "intermediary");
+		accessWidenerReader.read(input, originNamespace);
 		return writer.write();
 	}
 

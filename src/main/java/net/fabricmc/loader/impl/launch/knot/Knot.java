@@ -65,6 +65,8 @@ public final class Knot extends FabricLauncherBase {
 	private GameProvider provider;
 	private boolean unlocked;
 
+	private boolean doesFirstStageFinished = false;	// Silk: Flag of stage one.
+
 	public static void launch(String[] args, EnvType type) {
 		setupUncaughtExceptionHandler();
 
@@ -84,14 +86,6 @@ public final class Knot extends FabricLauncherBase {
 
 	public Knot(EnvType type) {
 		this.envType = type;
-
-		// silk: Try to Proof of Concept.
-//		System.setProperty("mixin.debug", "true");
-//		System.setProperty("mixin.env.remapRefMap", "true");
-//		File file = new File("silk-1.18.1.srg");
-//		assert file.exists();
-//		System.setProperty("mixin.env.refMapRemappingFile", file.toPath().toString());
-//		System.setProperty("mixin.env.refMapRemappingFileEnv", "notch");
 	}
 
 	protected ClassLoader init(String[] args) {
@@ -265,7 +259,7 @@ public final class Knot extends FabricLauncherBase {
 	public String getTargetNamespace() {
 		// TODO: Won't work outside of Yarn
 //		return isDevelopment ? "named" : "intermediary";
-		return "bukkit";	// Silk.
+		return doesFirstStageFinished ? "bukkit" : "official";	// Silk.
 	}
 
 	@Override
@@ -356,5 +350,9 @@ public final class Knot extends FabricLauncherBase {
 
 	public static void main(String[] args) {
 		new Knot(null).init(args);
+	}
+
+	public void setFirstStageFinished() {
+		doesFirstStageFinished = true;
 	}
 }

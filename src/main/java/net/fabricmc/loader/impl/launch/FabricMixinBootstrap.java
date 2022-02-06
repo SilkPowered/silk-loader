@@ -86,6 +86,8 @@ public final class FabricMixinBootstrap {
 		MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 		TinyTree mappings = mappingConfiguration.getMappings();
 
+		TinyTree silkMappings = new MappingConfigurationSilk().getMappings();
+
 		if (mappings != null) {
 			List<String> namespaces = mappings.getMetadata().getNamespaces();
 
@@ -94,12 +96,13 @@ public final class FabricMixinBootstrap {
 
 				try {
 					// Silk: Add our remapper to chain.
-					MixinIntermediaryToBukkitRemapper remapper = new MixinIntermediaryToBukkitRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+					MixinIntermediaryDevRemapper remapper2 = new MixinIntermediaryDevRemapper(silkMappings, "official", "bukkit");
+
+					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper2);
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 
 					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings for mixin remapper!");
-
-//					System.out.println(MixinEnvironment.getDefaultEnvironment().getRemappers().toString());
 				} catch (Exception e) {
 					Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
 					e.printStackTrace();
@@ -107,7 +110,6 @@ public final class FabricMixinBootstrap {
 			}
 		}
 		// Silk end.
-
 
 		MixinBootstrap.init();
 

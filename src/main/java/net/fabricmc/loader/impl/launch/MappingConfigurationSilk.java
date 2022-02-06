@@ -16,6 +16,12 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import net.fabricmc.loader.impl.util.ManifestUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.mapping.tree.TinyTree;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -28,14 +34,7 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
 
-import net.fabricmc.loader.impl.util.ManifestUtil;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.mapping.tree.TinyMappingFactory;
-import net.fabricmc.mapping.tree.TinyTree;
-
-// Silk: Make not final.
-public class MappingConfiguration {
+public class MappingConfigurationSilk extends MappingConfiguration {
 	private boolean initialized;
 
 	private String gameId;
@@ -69,20 +68,27 @@ public class MappingConfiguration {
 
 	public String getTargetNamespace() {
 //		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
-		return "official";	// Silk: We always run on production environment.
+		return "bukkit";	// Silk: We always run on production environment.
 	}
 
 	public boolean requiresPackageAccessHack() {
 		// TODO
 //		return getTargetNamespace().equals("named");
-		return getTargetNamespace().equals("official");	// Silk: Change named to official.
+		return getTargetNamespace().equals("bukkit");	// Silk: Change named to Bukkit.
 	}
 
 	private void initialize() {
 		if (initialized) return;
 
-		// Silk: Reverted changes here.
-		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		// Silk: Get mappings from file.
+//		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		URL url = null;
+		try {
+			url = new File("silk-1.18.1-cl.tiny").toURI().toURL();
+		} catch (MalformedURLException ex) {
+			ex.printStackTrace();
+		}
+		// Silk end.
 
 		if (url != null) {
 			try {
