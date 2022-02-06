@@ -200,6 +200,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			((Knot) launcher).setFirstStageFinished();
 
+			Files.deleteIfExists(modCacheDir.resolve(REMAPPED_MODS_DIR_NAME));
 			Files.copy(modCacheDir.resolve(PROCESSED_MODS_DIR_NAME), modCacheDir.resolve(REMAPPED_MODS_DIR_NAME));
 
 			setup(modCacheDir.resolve(REMAPPED_MODS_DIR_NAME), modCacheDir.resolve(PROCESSED_MODS_DIR_NAME),
