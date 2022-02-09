@@ -63,6 +63,9 @@ public final class RuntimeModRemapper {
 			if (mod.getRequiresRemap()) {
 				modsToRemap.add(mod);
 			}
+//			if (mod.getId().equals("minecraft")) {	// Silk: Remap spigot jar.
+//				modsToRemap.add(mod);
+//			}
 		}
 
 		if (modsToRemap.isEmpty()) return;
