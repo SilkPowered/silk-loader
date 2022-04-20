@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,8 +40,9 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
-import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SimpleClassPath;
+import net.fabricmc.loader.impl.util.SimpleClassPath.CpEntry;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
@@ -55,44 +56,42 @@ public final class McVersionLookup {
 			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
 			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
-			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
+			+ "1\\.RV-Pre1|3D Shareware v1\\.34|" // odd exceptions
+			+ "(.*[Ee]xperimental [Ss]napshot )(\\d+)" // Experimental versions.
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| [Rr]elease Candidate )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile("(?:.*[Ee]xperimental [Ss]napshot )(\\d+)");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
-	public static McVersion getVersion(Path gameJar, String entrypointClass, String versionName) {
+	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
 		McVersion.Builder builder = new McVersion.Builder();
 
 		if (versionName != null) {
 			builder.setNameAndRelease(versionName);
 		}
 
-		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
-			FileSystem fs = jarFs.get();
-
+		try (SimpleClassPath cp = new SimpleClassPath(gameJars)) {
 			// Determine class version
 			if (entrypointClass != null) {
-				Path file = fs.getPath(LoaderUtil.getClassFileName(entrypointClass));
+				try (InputStream is = cp.getInputStream(LoaderUtil.getClassFileName(entrypointClass))) {
+					DataInputStream dis = new DataInputStream(is);
 
-				if (Files.isRegularFile(file)) {
-					try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
-						if (is.readInt() == 0xCAFEBABE) {
-							is.readUnsignedShort();
-							builder.setClassVersion(is.readUnsignedShort());
-						}
+					if (dis.readInt() == 0xCAFEBABE) {
+						dis.readUnsignedShort();
+						builder.setClassVersion(dis.readUnsignedShort());
 					}
 				}
 			}
 
 			// Check various known files for version information if unknown
 			if (versionName == null) {
-				fillVersionFromJar(gameJar, fs, builder);
+				fillVersionFromJar(cp, builder);
 			}
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
@@ -104,8 +103,8 @@ public final class McVersionLookup {
 	public static McVersion getVersionExceptClassVersion(Path gameJar) {
 		McVersion.Builder builder = new McVersion.Builder();
 
-		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
-			fillVersionFromJar(gameJar, jarFs.get(), builder);
+		try (SimpleClassPath cp = new SimpleClassPath(Collections.singletonList(gameJar))) {
+			fillVersionFromJar(cp, builder);
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
 		}
@@ -113,38 +112,40 @@ public final class McVersionLookup {
 		return builder.build();
 	}
 
-	public static void fillVersionFromJar(Path gameJar, FileSystem fs, McVersion.Builder builder) {
+	public static void fillVersionFromJar(SimpleClassPath cp, McVersion.Builder builder) {
 		try {
-			Path file;
+			InputStream is;
 
 			// version.json - contains version and target release for 18w47b+
-			if (Files.isRegularFile(file = fs.getPath("version.json")) && fromVersionJson(Files.newInputStream(file), builder)) {
+			if ((is = cp.getInputStream("version.json")) != null && fromVersionJson(is, builder)) {
 				return;
 			}
 
 			// constant field RealmsSharedConstants.VERSION_STRING
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsSharedConstants.class")) && fromAnalyzer(Files.newInputStream(file), new FieldStringConstantVisitor("VERSION_STRING"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/realms/RealmsSharedConstants.class")) != null && fromAnalyzer(is, new FieldStringConstantVisitor("VERSION_STRING"), builder)) {
 				return;
 			}
 
 			// constant return value of RealmsBridge.getVersionString (presumably inlined+dead code eliminated VERSION_STRING)
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsBridge.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor("getVersionString"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/realms/RealmsBridge.class")) != null && fromAnalyzer(is, new MethodConstantRetVisitor("getVersionString"), builder)) {
 				return;
 			}
 
 			// version-like String constant used in MinecraftServer.run or another MinecraftServer method
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/server/MinecraftServer.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantVisitor("run"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/server/MinecraftServer.class")) != null && fromAnalyzer(is, new MethodConstantVisitor("run"), builder)) {
 				return;
 			}
 
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))) {
+			CpEntry entry = cp.getEntry("net/minecraft/client/Minecraft.class");
+
+			if (entry != null) {
 				// version-like constant return value of a Minecraft method (obfuscated/unknown name)
-				if (fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null), builder)) {
+				if (fromAnalyzer(entry.getInputStream(), new MethodConstantRetVisitor(null), builder)) {
 					return;
 				}
 
 				// version-like constant passed into Display.setTitle in a Minecraft method (obfuscated/unknown name)
-				if (fromAnalyzer(Files.newInputStream(file), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"), builder)) {
+				if (fromAnalyzer(entry.getInputStream(), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"), builder)) {
 					return;
 				}
 			}
@@ -152,7 +153,7 @@ public final class McVersionLookup {
 			e.printStackTrace();
 		}
 
-		builder.setFromFileName(gameJar.getFileName().toString());
+		builder.setFromFileName(cp.getPaths().get(0).getFileName().toString());
 	}
 
 	private static boolean fromVersionJson(InputStream is, McVersion.Builder builder) {
@@ -346,7 +347,9 @@ public final class McVersionLookup {
 
 		Matcher matcher;
 
-		if (name.startsWith(release)) {
+		if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) {
+			return String.format("%s-Experimental.%s", release, matcher.group(1));
+		} else if (name.startsWith(release)) {
 			matcher = RELEASE_CANDIDATE_PATTERN.matcher(name);
 
 			if (matcher.matches()) {
@@ -534,16 +537,17 @@ public final class McVersionLookup {
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
 
-		case "1.18 Experimental Snapshot 1":
-		case "1.18 experimental snapshot 2":
-		case "1.18 experimental snapshot 3":
-		case "1.18 experimental snapshot 4":
-		case "1.18 experimental snapshot 5":
-		case "1.18 experimental snapshot 6":
-		case "1.18 experimental snapshot 7":
-			// Pre-snapshot snapshots for 1.18 before the first (21w37a)
-			// Characters are compared lexically, so E(xperimental) < a(lpha)
-			return "1.18-Experimental.".concat(version.substring(27));
+		case "2point0_red":
+			// 2.0 update version red, forked from 1.5.1
+			return "1.5.2-red";
+
+		case "2point0_purple":
+			// 2.0 update version purple, forked from 1.5.1
+			return "1.5.2-purple";
+
+		case "2point0_blue":
+			// 2.0 update version blue, forked from 1.5.1
+			return "1.5.2-blue";
 
 		default:
 			return null; //Don't recognise the version
@@ -739,6 +743,8 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
+		private static final String STARTING_MESSAGE = "Starting minecraft server version ";
+
 		MethodConstantVisitor(String methodNameHint) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -761,13 +767,29 @@ public final class McVersionLookup {
 			return new MethodVisitor(FabricLoaderImpl.ASM_VERSION) {
 				@Override
 				public void visitLdcInsn(Object value) {
-					String str;
+					if ((result == null || !foundInMethodHint && isRequestedMethod) && value instanceof String) {
+						String str = (String) value;
 
-					if ((result == null || !foundInMethodHint && isRequestedMethod)
-							&& value instanceof String
-							&& isProbableVersion(str = (String) value)) {
-						result = str;
-						foundInMethodHint = isRequestedMethod;
+						// a0.1.0 - 1.2.5 have a startup message including the version, extract it from there
+						// Examples:
+						//  release 1.0.0 - Starting minecraft server version 1.0.0
+						// 	beta 1.7.3 - Starting minecraft server version Beta 1.7.3
+						// 	alpha 0.2.8 - Starting minecraft server version 0.2.8
+						if (str.startsWith(STARTING_MESSAGE)) {
+							str = str.substring(STARTING_MESSAGE.length());
+
+							// Alpha servers don't have any prefix, but they all have 0 as the major
+							if (!str.startsWith("Beta") && str.startsWith("0.")) {
+								str = "Alpha " + str;
+							}
+						}
+
+						// 1.0.0 - 1.13.2 have an obfuscated method that just returns the version, so we can use that
+
+						if (isProbableVersion(str)) {
+							result = str;
+							foundInMethodHint = isRequestedMethod;
+						}
 					}
 				}
 			};

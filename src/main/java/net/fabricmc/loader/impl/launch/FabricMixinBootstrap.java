@@ -44,6 +44,8 @@ import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.ModContainerImpl;
+import net.fabricmc.loader.impl.launch.knot.MixinServiceKnot;
+import net.fabricmc.loader.impl.launch.knot.MixinServiceKnotBootstrap;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
@@ -59,30 +61,12 @@ public final class FabricMixinBootstrap {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
 
-		// Silk: We are always running on production mode.
-//		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-//			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-//			TinyTree mappings = mappingConfiguration.getMappings();
-//
-//			if (mappings != null) {
-//				List<String> namespaces = mappings.getMetadata().getNamespaces();
-//
-//				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
-//					System.setProperty("mixin.env.remapRefMap", "true");
-//
-//					try {
-//						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
-//						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-//
-//						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
-//					} catch (Exception e) {
-//						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//		}
+		System.setProperty("mixin.bootstrapService", MixinServiceKnotBootstrap.class.getName());
+		System.setProperty("mixin.service", MixinServiceKnot.class.getName());
 
+		MixinBootstrap.init();
+
+		// Silk: We are always running on production mode.
 		MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 		TinyTree mappings = mappingConfiguration.getMappings();
 
@@ -110,8 +94,6 @@ public final class FabricMixinBootstrap {
 			}
 		}
 		// Silk end.
-
-		MixinBootstrap.init();
 
 		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
 

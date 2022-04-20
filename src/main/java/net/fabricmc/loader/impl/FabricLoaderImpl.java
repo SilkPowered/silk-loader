@@ -47,7 +47,6 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.ObjectShare;
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
@@ -67,6 +66,7 @@ import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.SystemProperties;
+import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -76,7 +76,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
-	public static final String VERSION = "0.12.12";
+	public static final String VERSION = "0.13.3";
 	public static final String MOD_ID = "fabricloader";
 
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
@@ -154,6 +154,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	 */
 	@Override
 	public Path getGameDir() {
+		if (gameDir == null) throw new IllegalStateException("invoked too early?");
+
 		return gameDir;
 	}
 
@@ -200,14 +202,21 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			((Knot) launcher).setFirstStageFinished();
 
-			Files.deleteIfExists(modCacheDir.resolve(REMAPPED_MODS_DIR_NAME));
-			Files.copy(modCacheDir.resolve(PROCESSED_MODS_DIR_NAME), modCacheDir.resolve(REMAPPED_MODS_DIR_NAME));
+			Path remappedModsDir = modCacheDir.resolve(REMAPPED_MODS_DIR_NAME);
+			Path processedModsDir = modCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
+			Files.deleteIfExists(remappedModsDir);
+			Files.createDirectories(processedModsDir);
+			Files.copy(processedModsDir, remappedModsDir);
 
 			setup(modCacheDir.resolve(REMAPPED_MODS_DIR_NAME), modCacheDir.resolve(PROCESSED_MODS_DIR_NAME),
 					new MappingConfigurationSilk(), "official", "bukkit", true);
 			// Silk end.
 		} catch (ModResolutionException exception) {
-			throw new FormattedException("Incompatible mod set!", exception);
+			if (exception.getCause() == null) {
+				throw new FormattedException("Incompatible mod set!", exception.getMessage());
+			} else {
+				throw new FormattedException("Incompatible mod set!", exception);
+			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -217,10 +226,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 					   String originNamespace, String targetNamespace, boolean addMod) throws ModResolutionException {
 //		boolean remapRegularMods = isDevelopmentEnvironment();
 		boolean remapRegularMods = true;	// Silk: Always remap.
+		VersionOverrides versionOverrides = new VersionOverrides();
+		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
 
 		// discover mods
 
-		ModDiscoverer discoverer = new ModDiscoverer();
+		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
 //		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(modDir, remapRegularMods));	// Silk: Pass arguments in.
@@ -229,13 +240,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
 		modCandidates = discoverer.discoverMods(this, envDisabledMods);
 
-		// apply version and dependency overrides
-
-		VersionOverrides versionOverrides = new VersionOverrides();
-		versionOverrides.apply(modCandidates);
-
-		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
-		depOverrides.apply(modCandidates);
+		// dump version and dependency overrides info
 
 		if (!versionOverrides.getAffectedModIds().isEmpty()) {
 			Log.info(LogCategory.GENERAL, "Versions overridden for %s", String.join(", ", versionOverrides.getAffectedModIds()));
@@ -354,8 +359,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 
 			// suppress fabric loader explicitly in case its fabric.mod.json is in a different folder from the classes
-			Path fabricLoaderPath = ClasspathModCandidateFinder.getFabricLoaderPath();
-			if (fabricLoaderPath != null) knownModPaths.add(fabricLoaderPath.toAbsolutePath().normalize());
+			knownModPaths.add(UrlUtil.LOADER_CODE_SOURCE.toAbsolutePath().normalize());
 
 			for (String pathName : System.getProperty("java.class.path", "").split(File.pathSeparator)) {
 				if (pathName.isEmpty() || pathName.endsWith("*")) continue;
@@ -368,7 +372,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 		}
 
-		postprocessModMetadata();
 		setupLanguageAdapters();
 		setupMods();
 	}
@@ -445,18 +448,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		for (String provides : candidate.getProvides()) {
 			modMap.put(provides, container);
-		}
-	}
-
-	protected void postprocessModMetadata() {
-		for (ModContainerImpl mod : mods) {
-			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) does not respect SemVer - comparison support is limited.",
-						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
-			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.",
-						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
-			}
 		}
 	}
 

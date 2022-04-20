@@ -84,7 +84,7 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 //		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
 		URL url = null;
 		try {
-			url = new File("silk-1.18.1-cl.tiny").toURI().toURL();
+			url = new File("silk-1.18.2.tiny").toURI().toURL();
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		}

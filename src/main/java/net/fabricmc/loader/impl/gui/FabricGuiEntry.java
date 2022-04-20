@@ -28,11 +28,12 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricTreeWarningLevel;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -68,10 +69,7 @@ public final class FabricGuiEntry {
 
 		if (javaPath == null) throw new RuntimeException("can't find java executable in "+javaBinDir);
 
-		Path loaderPath = ClasspathModCandidateFinder.getFabricLoaderPath();
-		if (loaderPath == null) throw new RuntimeException("can't determine Fabric Loader path");
-
-		Process process = new ProcessBuilder(javaPath.toString(), "-Xmx100M", "-cp", loaderPath.toString(), FabricGuiEntry.class.getName())
+		Process process = new ProcessBuilder(javaPath.toString(), "-Xmx100M", "-cp", UrlUtil.LOADER_CODE_SOURCE.toString(), FabricGuiEntry.class.getName())
 				.redirectOutput(ProcessBuilder.Redirect.INHERIT)
 				.redirectError(ProcessBuilder.Redirect.INHERIT)
 				.start();
@@ -101,8 +99,14 @@ public final class FabricGuiEntry {
 	public static void displayError(String mainText, Throwable exception, boolean exitAfter) {
 		displayError(mainText, exception, tree -> {
 			StringWriter error = new StringWriter();
-			exception.printStackTrace(new PrintWriter(error));
-			tree.addButton("Copy stacktrace", FabricBasicButtonType.CLICK_MANY).withClipboard(error.toString());
+			error.append(mainText);
+
+			if (exception != null) {
+				error.append(System.lineSeparator());
+				exception.printStackTrace(new PrintWriter(error));
+			}
+
+			tree.addButton("Copy error", FabricBasicButtonType.CLICK_MANY).withClipboard(error.toString());
 		}, exitAfter);
 	}
 
@@ -114,7 +118,11 @@ public final class FabricGuiEntry {
 			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
-			crashTab.node.addCleanedException(exception);
+			if (exception != null) {
+				crashTab.node.addCleanedException(exception);
+			} else {
+				crashTab.node.addMessage("No further details available", FabricTreeWarningLevel.NONE);
+			}
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?

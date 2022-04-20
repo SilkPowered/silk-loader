@@ -10,8 +10,8 @@ loom {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.18.1"
-	mappings "net.fabricmc:yarn:1.18.1+build.22:v2"
+	minecraft "com.mojang:minecraft:1.18.2"
+	mappings "net.fabricmc:yarn:1.18.2+build.3:v2"
 
 	implementation project(":minecraft")
 
@@ -22,21 +22,41 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
 
-	implementation(files("libs/server.jar"))
+	/**
+	 * Ensure we are using the mixin version loader is built against to test the AP.
+	 * Otherwise Loom will default to an older version (due to no mod loader on the mod* configs)
+	 */
+	annotationProcessor ("net.fabricmc:sponge-mixin:${project.mixin_version}") {
+		exclude module: 'launchwrapper'
+		exclude module: 'guava'
+	}
 
 	// Silk: For developing.
-	if (file("run/bundler/libraries").exists()) {
-		for (file in fileTree("run/bundler/libraries")) {
-			implementation(files(file))
-		}
-	}
+	implementation(files("libs/server.jar"))
 
-	if (file("run/bundler/versions").exists()) {
-		for (file in fileTree("run/bundler/versions")) {
-			implementation(files(file))
-		}
-	}
+//	if (file("run/bundler/libraries").exists()) {
+//		for (file in fileTree("run/bundler/libraries")) {
+//			implementation(files(file))
+//		}
+//	}
+//
+//	if (file("run/bundler/versions").exists()) {
+//		for (file in fileTree("run/bundler/versions")) {
+//			implementation(files(file))
+//		}
+//	}
+//
+//	runtimeClasspath(":minecraft:minecraft-test") {
+//		exclude group: "net.minecraft", module: "minecraft-merged-named"
+//	}
+
+
 	// Silk end.
+}
+
+// Silk: remove minecraft provided by loom.
+configurations.all {
+	exclude module: 'minecraft-merged-named'
 }
 
 tasks.withType(JavaCompile).configureEach {

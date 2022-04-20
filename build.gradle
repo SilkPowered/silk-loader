@@ -10,8 +10,9 @@ plugins {
 	id 'java-library'
 	id 'eclipse'
 	id 'maven-publish'
-	id 'fabric-loom' version '0.10-SNAPSHOT' apply false
-	id 'com.github.johnrengelman.shadow' version '7.0.0'
+	id 'fabric-loom' version '0.11-SNAPSHOT' apply false
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id "me.modmuss50.remotesign" version "0.2.4"
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -35,10 +36,6 @@ allprojects {
 			url = 'https://maven.fabricmc.net/'
 		}
 		mavenCentral()
-		maven {
-			name = 'mojang'
-			url = 'https://libraries.minecraft.net/'
-		}
 	}
 }
 
@@ -64,21 +61,21 @@ dependencies {
 	api "org.ow2.asm:asm-tree:${project.asm_version}"
 	api "org.ow2.asm:asm-util:${project.asm_version}"
 
-	api('net.fabricmc:sponge-mixin:0.10.7+mixin.0.8.4') {
+	api("net.fabricmc:sponge-mixin:${project.mixin_version}") {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
 	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
-	api 'net.fabricmc:tiny-remapper:0.6.0'
-	api 'net.fabricmc:access-widener:2.0.1'
+	api 'net.fabricmc:tiny-remapper:0.8.1'
+	api 'net.fabricmc:access-widener:2.1.0'
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 
-	testCompileOnly 'org.jetbrains:annotations:21.0.1'
+	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.6.2')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
 }
 
 processResources {
@@ -260,12 +257,34 @@ tasks.withType(GenerateModuleMetadata) {
 	enabled = false
 }
 
+def signingEnabled = ENV.SIGNING_SERVER
+File proguardFileSigned = null
+
+if (signingEnabled) {
+	proguardFileSigned = file("build/libs/fabric-loader-${version}-signed.jar")
+
+	remoteSign {
+		requestUrl = ENV.SIGNING_SERVER
+		pgpAuthKey = ENV.SIGNING_PGP_KEY
+		jarAuthKey = ENV.SIGNING_JAR_KEY
+
+		sign(proguardFile, proguardFileSigned, "proguard").configure {
+			dependsOn proguardJar
+		}
+
+		afterEvaluate {
+			sign publishing.publications.mavenJava
+		}
+	}
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			artifact(proguardFile) {
-				builtBy proguardJar
+			artifact(signingEnabled ? proguardFileSigned : proguardFile) {
+				builtBy(signingEnabled ? signProguard : proguardJar)
+				classifier = null
 			}
 			artifact(sourcesJar)
 			artifact javadocJar
@@ -354,3 +373,6 @@ task move {
 }
 
 move.dependsOn(build)
+
+// Silk: copy resources.
+tasks.compileJava.dependsOn processResources

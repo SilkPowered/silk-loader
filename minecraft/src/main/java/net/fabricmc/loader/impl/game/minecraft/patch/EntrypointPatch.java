@@ -53,7 +53,7 @@ public class EntrypointPatch extends GamePatch {
 		EnvType type = launcher.getEnvironmentType();
 		String entrypoint = launcher.getEntrypoint();
 
-		if (!entrypoint.startsWith("net.minecraft.") && !entrypoint.startsWith("com.mojang.")) {
+		if (!entrypoint.startsWith("net.minecraft.") && !entrypoint.startsWith("com.mojang.") && !entrypoint.startsWith("org.bukkit.")) {
 			return;
 		}
 
@@ -94,7 +94,8 @@ public class EntrypointPatch extends GamePatch {
 		if (gameEntrypoint == null) {
 			// main method searches
 			MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") &&
-					method.desc.equals("(Ljoptsimple/OptionSet;)V")
+					method.desc.equals("([Ljava/lang/String;)V")
+//					method.desc.equals("(Ljoptsimple/OptionSet;)V")
 					//method.desc.equals("([Ljava/lang/String;)V")
 					&& isPublicStatic(method.access));
 
@@ -131,11 +132,15 @@ public class EntrypointPatch extends GamePatch {
 							false);
 				}
 
+				// Silk
 				// Detect 20w22a by searching for a specific log message
 				if (type == EnvType.SERVER && hasStrInMethod(mainClass.name, mainMethod.name, mainMethod.desc, "Safe mode active, only vanilla datapack will be loaded", classSource)) {
 					is20w22aServerOrHigher = true;
 					gameEntrypoint = mainClass.name;
 				}
+//				is20w22aServerOrHigher = true;
+//				gameEntrypoint = mainClass.name;
+				// Silk end.
 
 				if (newGameInsn != null) {
 					gameEntrypoint = newGameInsn.owner.replace('/', '.');
@@ -213,8 +218,7 @@ public class EntrypointPatch extends GamePatch {
 		} else {
 			gameMethod = findMethod(mainClass, (method) -> method.name.equals("main")
 					&&
-					//method.desc.equals("([Ljava/lang/String;)V")
-					method.desc.equals("(Ljoptsimple/OptionSet;)V") // silk: duplicate code?
+					method.desc.equals("([Ljava/lang/String;)V") // silk: There is no more arguments change.
 					&& isPublicStatic(method.access));
 		}
 
@@ -349,14 +353,15 @@ public class EntrypointPatch extends GamePatch {
 
 					// 1.16-pre1+ Find the only constructor which takes a Thread as it's first parameter
 					MethodInsnNode dedicatedServerConstructor = (MethodInsnNode) findInsn(serverStartMethod, insn -> {
-						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) {
+						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) { 	// silk: here is main.
+//						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) {
 							Type constructorType = Type.getMethodType(((MethodInsnNode) insn).desc);
 
 							if (constructorType.getArgumentTypes().length <= 0) {
 								return false;
 							}
-							//return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
-							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljoptsimple/OptionSet;"); // silk: spigot patched here
+							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+//							return constructorType.getArgumentTypes()[0].getDescriptor().equals("()V"); // silk: spigot patched here
 						}
 
 						return false;
