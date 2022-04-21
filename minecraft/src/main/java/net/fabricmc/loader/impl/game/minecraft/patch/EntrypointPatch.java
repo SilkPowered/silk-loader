@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -51,7 +50,8 @@ public class EntrypointPatch extends GamePatch {
 	@Override
 	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
 		EnvType type = launcher.getEnvironmentType();
-		String entrypoint = launcher.getEntrypoint();
+		String entrypoint = "net.minecraft.server.Main";	// silk: temp set to nms.Main.
+//		String entrypoint = launcher.getEntrypoint();
 
 		if (!entrypoint.startsWith("net.minecraft.") && !entrypoint.startsWith("com.mojang.") && !entrypoint.startsWith("org.bukkit.")) {
 			return;
@@ -94,8 +94,8 @@ public class EntrypointPatch extends GamePatch {
 		if (gameEntrypoint == null) {
 			// main method searches
 			MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") &&
-					method.desc.equals("([Ljava/lang/String;)V")
-//					method.desc.equals("(Ljoptsimple/OptionSet;)V")
+//					method.desc.equals("([Ljava/lang/String;)V")
+					method.desc.equals("(Ljoptsimple/OptionSet;)V")	// silk: revert it.
 					//method.desc.equals("([Ljava/lang/String;)V")
 					&& isPublicStatic(method.access));
 
@@ -132,15 +132,11 @@ public class EntrypointPatch extends GamePatch {
 							false);
 				}
 
-				// Silk
 				// Detect 20w22a by searching for a specific log message
 				if (type == EnvType.SERVER && hasStrInMethod(mainClass.name, mainMethod.name, mainMethod.desc, "Safe mode active, only vanilla datapack will be loaded", classSource)) {
 					is20w22aServerOrHigher = true;
 					gameEntrypoint = mainClass.name;
 				}
-//				is20w22aServerOrHigher = true;
-//				gameEntrypoint = mainClass.name;
-				// Silk end.
 
 				if (newGameInsn != null) {
 					gameEntrypoint = newGameInsn.owner.replace('/', '.');
@@ -218,7 +214,8 @@ public class EntrypointPatch extends GamePatch {
 		} else {
 			gameMethod = findMethod(mainClass, (method) -> method.name.equals("main")
 					&&
-					method.desc.equals("([Ljava/lang/String;)V") // silk: There is no more arguments change.
+					method.desc.equals("(Ljoptsimple/OptionSet;)V")	// silk: revert it.
+//					method.desc.equals("([Ljava/lang/String;)V")
 					&& isPublicStatic(method.access));
 		}
 
@@ -270,13 +267,21 @@ public class EntrypointPatch extends GamePatch {
 				// Is only method that returns a class instance
 				// If we do not find this, then we are certain this is 20w22a.
 				MethodNode serverStartMethod = findMethod(mainClass, method -> {
-					if (method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V")) {
+					if (method.name.equals("main") && method.desc.equals("(Ljoptsimple/OptionSet;)V")) {
 						return false;
 					}
 
-					final Type methodReturnType = Type.getReturnType(method.desc);
+					// silk.
+					if (method.name.equals("lambda$3") && method.desc.equals("(Ljoptsimple/OptionSet;Ljava/util/concurrent/atomic/AtomicReference;Ljava/util/concurrent/atomic/AtomicReference;Lnet/minecraft/world/level/storage/Convertable$ConversionSession;Lnet/minecraft/server/packs/repository/ResourcePackRepository;Lnet/minecraft/server/WorldStem;Lnet/minecraft/server/dedicated/DedicatedServerSettings;Lcom/mojang/authlib/minecraft/MinecraftSessionService;Lcom/mojang/authlib/GameProfileRepository;Lnet/minecraft/server/players/UserCache;Ljava/lang/Thread;)Lnet/minecraft/server/dedicated/DedicatedServer;")) {
+						return true;
+					}
 
-					return methodReturnType.getSort() != Type.BOOLEAN && methodReturnType.getSort() != Type.VOID && methodReturnType.getSort() == Type.OBJECT;
+					return false;
+
+//					final Type methodReturnType = Type.getReturnType(method.desc);
+//
+//					return methodReturnType.getSort() != Type.BOOLEAN && methodReturnType.getSort() != Type.VOID && methodReturnType.getSort() == Type.OBJECT;
+					// silk end.
 				});
 
 				if (serverStartMethod == null) {
@@ -354,14 +359,13 @@ public class EntrypointPatch extends GamePatch {
 					// 1.16-pre1+ Find the only constructor which takes a Thread as it's first parameter
 					MethodInsnNode dedicatedServerConstructor = (MethodInsnNode) findInsn(serverStartMethod, insn -> {
 						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) { 	// silk: here is main.
-//						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) {
 							Type constructorType = Type.getMethodType(((MethodInsnNode) insn).desc);
 
 							if (constructorType.getArgumentTypes().length <= 0) {
 								return false;
 							}
-							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
-//							return constructorType.getArgumentTypes()[0].getDescriptor().equals("()V"); // silk: spigot patched here
+//							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljoptsimple/OptionSet;");	// silk: option set.
 						}
 
 						return false;

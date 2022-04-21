@@ -34,17 +34,17 @@ dependencies {
 	// Silk: For developing.
 	implementation(files("libs/server.jar"))
 
-//	if (file("run/bundler/libraries").exists()) {
-//		for (file in fileTree("run/bundler/libraries")) {
-//			implementation(files(file))
-//		}
-//	}
-//
-//	if (file("run/bundler/versions").exists()) {
-//		for (file in fileTree("run/bundler/versions")) {
-//			implementation(files(file))
-//		}
-//	}
+	if (file("run/bundler/libraries").exists()) {
+		for (file in fileTree("run/bundler/libraries")) {
+			compileOnly(files(file))
+		}
+	}
+
+	if (file("run/bundler/versions").exists()) {
+		for (file in fileTree("run/bundler/versions")) {
+			compileOnly(files(file))
+		}
+	}
 //
 //	runtimeClasspath(":minecraft:minecraft-test") {
 //		exclude group: "net.minecraft", module: "minecraft-merged-named"
