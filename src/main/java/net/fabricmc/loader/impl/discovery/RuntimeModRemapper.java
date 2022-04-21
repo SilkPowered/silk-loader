@@ -81,7 +81,7 @@ public final class RuntimeModRemapper {
 //		} else {
 //			annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
 //		}
-		annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
+		annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
 
 		MixinExtension mixinExtension = new MixinExtension(annotationTargets);
 
