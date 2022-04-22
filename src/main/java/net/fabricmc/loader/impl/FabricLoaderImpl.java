@@ -195,19 +195,24 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
 			// Silk: Remap twice for bukkit.
+
+			// silk: remap spigot to intermediary.
 			Path modCacheDir = gameDir.resolve(CACHE_DIR_NAME);
-			Path remappedModsDir = modCacheDir.resolve(REMAPPED_MODS_DIR_NAME);
 			Path processedModsDir = modCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
 
-			setup(gameDir.resolve("mods"), remappedModsDir,
+			Path pluginsDir = gameDir.resolve("plugins");
+			Path processedPluginsDir = gameDir.resolve(".silk").resolve("processedPlugins");
+
+			setup(gameDir.resolve("mods"), processedModsDir,
 					launcher.getMappingConfiguration(),
-					"intermediary", launcher.getTargetNamespace(), false);
+					"intermediary", launcher.getTargetNamespace(), true);
 
 			((Knot) launcher).setFirstStageFinished();
 
-			setup(remappedModsDir, processedModsDir,
-					new MappingConfigurationSilk(), "official",
-					launcher.getTargetNamespace(), true);
+			if (pluginsDir.toFile().exists()) {
+				setup(processedPluginsDir, pluginsDir,
+						new MappingConfigurationSilk());
+			}
 			// Silk end.
 		} catch (ModResolutionException exception) {
 			if (exception.getCause() == null) {
@@ -218,9 +223,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
+	private void setup(Path modDir, Path outputModDir, MappingConfiguration mapping) {
+
+	}
+
 	private void setup(Path modDir, Path outputModDir, MappingConfiguration mapping,
 					   String originNamespace, String targetNamespace, boolean addMod) throws ModResolutionException {
-//		boolean remapRegularMods = isDevelopmentEnvironment();
 		boolean remapRegularMods = true;	// Silk: Always remap.
 		VersionOverrides versionOverrides = new VersionOverrides();
 		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
