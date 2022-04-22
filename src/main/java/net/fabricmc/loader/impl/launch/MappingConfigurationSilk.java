@@ -41,6 +41,12 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 	private String gameVersion;
 	private TinyTree mappings;
 
+	private String filename;
+
+	public MappingConfigurationSilk(String mappingFile) {
+		filename = mappingFile;
+	}
+
 	public String getGameId() {
 		initialize();
 
@@ -81,7 +87,7 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 		// Silk: Get mappings from file.
 		URL url = null;
 		try {
-			url = new File("silk-1.18.2.tiny").toURI().toURL();
+			url = new File(filename).toURI().toURL();
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		}

@@ -45,12 +45,12 @@ dependencies {
 			compileOnly(files(file))
 		}
 	}
-//
+
 //	runtimeClasspath(":minecraft:minecraft-test") {
-//		exclude group: "net.minecraft", module: "minecraft-merged-named"
+//		exclude module: "minecraft-merged-named"
 //	}
-
-
+//
+//	modImplementation "net.fabricmc.fabric-api:fabric-api:0.51.1+1.18.2"
 	// Silk end.
 }
 

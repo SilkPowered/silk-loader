@@ -82,6 +82,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
 	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to cache dir
 	private static final String REMAPPED_MODS_DIR_NAME = "remappedMods"; // relative to cache dir
+	private static final String SILK_MODS_DIR_NAME = "silkTempMods"; // relative to cache dir
 	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to cache dir
 	private static final String TMP_DIR_NAME = "tmp"; // relative to cache dir
 
@@ -197,6 +198,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			// Silk: Remap twice for bukkit.
 			Path modCacheDir = gameDir.resolve(CACHE_DIR_NAME);
 			Path remappedModsDir = modCacheDir.resolve(REMAPPED_MODS_DIR_NAME);
+			Path silkTempDir = modCacheDir.resolve(SILK_MODS_DIR_NAME);
 			Path processedModsDir = modCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
 
 			setup(gameDir.resolve("mods"), remappedModsDir,
@@ -205,9 +207,13 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			((Knot) launcher).setFirstStageFinished();
 
-			setup(remappedModsDir, processedModsDir,
-					new MappingConfigurationSilk(), "official",
-					launcher.getTargetNamespace(), true);
+			setup(remappedModsDir, silkTempDir,
+					new MappingConfigurationSilk("silk-1.18.2.tiny"), "official",
+					"silk-tmp", false);
+
+			setup(silkTempDir, processedModsDir,
+					new MappingConfigurationSilk("silk-1.18.2-2.tiny"), "silk-tmp",
+					"bukkit", true);
 			// Silk end.
 		} catch (ModResolutionException exception) {
 			if (exception.getCause() == null) {

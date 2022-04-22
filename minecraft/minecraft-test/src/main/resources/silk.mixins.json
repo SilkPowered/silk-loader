@@ -1,8 +1,9 @@
 {
     "required": true,
-    "package": "net.fabricmc.minecraft.test.mixin",
+    "package": "cx.rain.silk.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
+        "entity.MixinLivingEntity"
     ],
     "injectors": {
         "defaultRequire": 1

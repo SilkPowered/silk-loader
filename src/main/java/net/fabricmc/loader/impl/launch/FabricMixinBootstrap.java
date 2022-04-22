@@ -70,7 +70,8 @@ public final class FabricMixinBootstrap {
 		MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 		TinyTree mappings = mappingConfiguration.getMappings();
 
-		TinyTree silkMappings = new MappingConfigurationSilk().getMappings();
+		TinyTree silkMappings1 = new MappingConfigurationSilk("silk-1.18.2.tiny").getMappings();
+		TinyTree silkMappings2 = new MappingConfigurationSilk("silk-1.18.2-2.tiny").getMappings();
 
 		if (mappings != null) {
 			List<String> namespaces = mappings.getMetadata().getNamespaces();
@@ -81,10 +82,12 @@ public final class FabricMixinBootstrap {
 				try {
 					// Silk: Add our remapper to chain.
 					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
-					MixinIntermediaryDevRemapper remapper2 = new MixinIntermediaryDevRemapper(silkMappings, "official", "bukkit");
+					MixinIntermediaryDevRemapper remapper2 = new MixinIntermediaryDevRemapper(silkMappings1, "official", "silk-tmp");
+					MixinIntermediaryDevRemapper remapper3 = new MixinIntermediaryDevRemapper(silkMappings2, "silk-tmp", "bukkit");
 
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper2);
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper2);
+					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper3);
 
 					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings for mixin remapper!");
 				} catch (Exception e) {

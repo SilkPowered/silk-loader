@@ -75,14 +75,8 @@ public final class RuntimeModRemapper {
 
 		// Silk: Add Mixin Extension Hard remapping.
 		Set<MixinExtension.AnnotationTarget> annotationTargets = new HashSet<>();
-
-//		if (mapping.getTargetNamespace().equals("bukkit")) {
-//			annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
-//		} else {
-//			annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
-//		}
 		annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
-
+		annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
 		MixinExtension mixinExtension = new MixinExtension(annotationTargets);
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
