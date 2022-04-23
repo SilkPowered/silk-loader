@@ -9,9 +9,15 @@ loom {
 	}
 }
 
+repositories {
+	maven {
+		url = "https://repo.codemc.io/repository/nms/"
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:1.18.2"
-	mappings "net.fabricmc:yarn:1.18.2+build.3:v2"
+	mappings loom.officialMojangMappings()
 
 	implementation project(":minecraft")
 
@@ -32,19 +38,7 @@ dependencies {
 	}
 
 	// Silk: For developing.
-	implementation(files("libs/server.jar"))
-
-	if (file("run/bundler/libraries").exists()) {
-		for (file in fileTree("run/bundler/libraries")) {
-			compileOnly(files(file))
-		}
-	}
-
-	if (file("run/bundler/versions").exists()) {
-		for (file in fileTree("run/bundler/versions")) {
-			compileOnly(files(file))
-		}
-	}
+	implementation "org.spigotmc:spigot:1.18.2-R0.1-20220416.071816-3:remapped-mojang"
 
 //	runtimeClasspath(":minecraft:minecraft-test") {
 //		exclude module: "minecraft-merged-named"

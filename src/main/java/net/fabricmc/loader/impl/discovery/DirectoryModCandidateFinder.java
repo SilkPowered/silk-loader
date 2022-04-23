@@ -41,7 +41,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	public void findCandidates(ModCandidateConsumer out) {
 		if (!Files.exists(path)) {
 			try {
-				Files.createDirectory(path);
+				Files.createDirectories(path); // silk: fix the crash if parent directories are not exist.
 			} catch (IOException e) {
 				throw new RuntimeException("Could not create directory " + path, e);
 			}
