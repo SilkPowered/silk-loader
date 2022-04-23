@@ -270,8 +270,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 		}
 
-		int count = modCandidates.size();
-		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
+		if (addMod) {
+			int count = modCandidates.size();
+			Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
+		}
 
 		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
 //		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);	// Silk: Pass arguments in.
