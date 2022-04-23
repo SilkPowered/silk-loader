@@ -189,12 +189,14 @@ public class MinecraftGameProvider implements GameProvider {
 
 			classifier.process(launcher.getClassPath());
 
-			if (classifier.has(McLibrary.MC_BUNDLER)) {
+			if (!Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false")) && classifier.has(McLibrary.MC_BUNDLER)) { // silk: We are
 				BundlerProcessor.process(classifier);
 			}
 
 			envGameJar = classifier.getOrigin(envGameLib);
 			if (envGameJar == null) return false;
+
+			Log.enableBuiltinHandlerBuffering(true);
 
 			commonGameJar = classifier.getOrigin(McLibrary.MC_COMMON);
 
@@ -364,7 +366,7 @@ public class MinecraftGameProvider implements GameProvider {
 				logHandlerCls = Class.forName(logHandlerClsName);
 			}
 
-			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance(), true);
+			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance());
 			Thread.currentThread().setContextClassLoader(prevCl);
 		} catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e);
@@ -452,8 +454,11 @@ public class MinecraftGameProvider implements GameProvider {
 			// silk: we should load spigot first.
 
 			List<URL> urls = new ArrayList<>();
-			for (File f : new File("bundler/versions").listFiles()) {
-				urls.add(f.toURI().toURL());
+			File versionsDir = new File("bundler/versions");
+			if (versionsDir.isDirectory()) {
+				for (File f : new File("bundler/versions").listFiles()) {
+					urls.add(f.toURI().toURL());
+				}
 			}
 
 			URLClassLoader cl = new URLClassLoader(urls.toArray(new URL[0]), loader);
