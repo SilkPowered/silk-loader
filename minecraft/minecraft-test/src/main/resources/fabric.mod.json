@@ -4,9 +4,6 @@
   "name": "Silk",
   "version": "1.0.0",
   "mixins": [
-    {
-      "config": "silk.mixins.json",
-      "environment": "server"
-    }
+    "silk.mixins.json"
   ]
 }
