@@ -33,9 +33,6 @@ import java.util.Set;
 
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 
-import net.fabricmc.loader.impl.launch.MappingConfiguration;
-import net.fabricmc.loader.impl.launch.MappingConfigurationSilk;
-
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
@@ -194,23 +191,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			// Silk: Remap twice for bukkit.
 			Path modCacheDir = gameDir.resolve(CACHE_DIR_NAME);
-			Path remappedModsDir = modCacheDir.resolve(REMAPPED_MODS_DIR_NAME);
-			Path silkTempDir = modCacheDir.resolve(SILK_MODS_DIR_NAME);
-			Path processedModsDir = modCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
-
-			setup(gameDir.resolve("mods"), remappedModsDir,
-					launcher.getMappingConfiguration(),
-					"intermediary", launcher.getTargetNamespace(), false);
-
-			((Knot) launcher).setFirstStageFinished();
-
-			setup(remappedModsDir, silkTempDir,
-					new MappingConfigurationSilk("silk-1.18.2.tiny"), "official",
-					"silk-tmp", false);
-
-			setup(silkTempDir, processedModsDir,
-					new MappingConfigurationSilk("silk-1.18.2-2.tiny"), "silk-tmp",
-					"bukkit", true);
+			setup(gameDir.resolve("mods"), modCacheDir);
 			// Silk end.
 		} catch (ModResolutionException exception) {
 			if (exception.getCause() == null) {
@@ -221,10 +202,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
-	private void setup(Path modDir, Path outputModDir, MappingConfiguration mapping,
-					   String originNamespace, String targetNamespace, boolean addMod) throws ModResolutionException {
-//		boolean remapRegularMods = isDevelopmentEnvironment();
-		boolean remapRegularMods = true;	// Silk: Always remap.
+	private void setup(Path modDir, Path cacheDir) throws ModResolutionException {
+		boolean isDev = isDevelopmentEnvironment();	// silk: check if dev env or not.
+		boolean requiresRemap = true;	// silk: is a mod requires to remap.
 		VersionOverrides versionOverrides = new VersionOverrides();
 		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
 
@@ -232,8 +212,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
-		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(modDir, remapRegularMods));	// Silk: Pass arguments in.
-		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
+		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(modDir, requiresRemap));	// Silk: Pass arguments in.
+		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(requiresRemap));
 
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
 		modCandidates = discoverer.discoverMods(this, envDisabledMods);
@@ -270,23 +250,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 		}
 
-		if (addMod) {
-			int count = modCandidates.size();
-			Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
-		}
-
-		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
-//		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);	// Silk: Pass arguments in.
+		int count = modCandidates.size();
+		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
 
 		// runtime mod remapping
 
-		if (remapRegularMods) {
+		if (isDev) {
 			if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 				Log.warn(LogCategory.MOD_REMAP, "Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			} else {
-				FabricLauncher launcher = FabricLauncherBase.getLauncher();
-//				RuntimeModRemapper.remap(modCandidates, cacheDir.resolve(TMP_DIR_NAME), outputdir, launcher.getMappingConfiguration());
-				RuntimeModRemapper.remap(modCandidates, cacheDir.resolve(TMP_DIR_NAME), outputModDir, mapping, originNamespace, targetNamespace);	// Silk: Pass arguments in.
+				// Todo
+//				RuntimeModRemapper.remap(modCandidates, cacheDir.resolve(TMP_DIR_NAME), outputModDir, mapping, originNamespace, targetNamespace);	// Silk: Pass arguments in.
 			}
 		}
 
@@ -315,19 +289,20 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		// add mods
 
 		// Silk: Add Mod with condition.
-		if (addMod) {
-			for (ModCandidate mod : modCandidates) {
-				if (!mod.hasPath() && !mod.isBuiltin()) {
-					try {
-						mod.setPaths(Collections.singletonList(mod.copyToDir(outputModDir, false)));
-					} catch (IOException e) {
-						throw new RuntimeException("Error extracting mod "+mod, e);
-					}
-				}
-
-				addMod(mod);
-			}
-		}
+		// Todo
+//		if (addMod) {
+//			for (ModCandidate mod : modCandidates) {
+//				if (!mod.hasPath() && !mod.isBuiltin()) {
+//					try {
+//						mod.setPaths(Collections.singletonList(mod.copyToDir(outputModDir, false)));
+//					} catch (IOException e) {
+//						throw new RuntimeException("Error extracting mod "+mod, e);
+//					}
+//				}
+//
+//				addMod(mod);
+//			}
+//		}
 
 		modCandidates = null;
 	}

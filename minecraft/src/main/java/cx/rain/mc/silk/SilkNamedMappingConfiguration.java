@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.impl.launch;
+package cx.rain.mc.silk;
 
+import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -34,31 +35,52 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
 
-public class MappingConfigurationSilk extends MappingConfiguration {
+public class SilkNamedMappingConfiguration extends MappingConfiguration {
 	private boolean initialized;
 
 	private String gameId;
 	private String gameVersion;
 	private TinyTree mappings;
 
-	private String filename;
+	private RemapPhase mappingPhase;
+	private String mappingsFile;
+	private boolean mappingIsInJar;
 
-	public MappingConfigurationSilk(String mappingFile) {
-		filename = mappingFile;
+	public SilkNamedMappingConfiguration(RemapPhase phase) {
+		this(phase, "silk-" + phase.getFrom() + "-" + phase.getTo() + ".tiny", true);
 	}
 
+	public SilkNamedMappingConfiguration(RemapPhase phase, String filename, boolean isMappingsInsideJar) {
+		mappingPhase = phase;
+		mappingsFile = filename;
+		mappingIsInJar = isMappingsInsideJar;
+	}
+
+	@Override
+	public String getTargetNamespace() {
+		return mappingPhase.getTo();
+	}
+
+	// Todo
+//	public boolean requiresPackageAccessHack() {
+//		return getTargetNamespace().equals("bukkit");	// Silk: Change named to Bukkit.
+//	}
+
+	@Override
 	public String getGameId() {
 		initialize();
 
 		return gameId;
 	}
 
+	@Override
 	public String getGameVersion() {
 		initialize();
 
 		return gameVersion;
 	}
 
+	@Override
 	public boolean matches(String gameId, String gameVersion) {
 		initialize();
 
@@ -66,19 +88,11 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 				&& (this.gameVersion == null || gameVersion == null || gameVersion.equals(this.gameVersion));
 	}
 
+	@Override
 	public TinyTree getMappings() {
 		initialize();
 
 		return mappings;
-	}
-
-	public String getTargetNamespace() {
-		return "bukkit";	// Silk: We always run on production environment.
-	}
-
-	public boolean requiresPackageAccessHack() {
-		// TODO
-		return getTargetNamespace().equals("bukkit");	// Silk: Change named to Bukkit.
 	}
 
 	private void initialize() {
@@ -86,11 +100,17 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 
 		// Silk: Get mappings from file.
 		URL url = null;
-		try {
-			url = new File(filename).toURI().toURL();
-		} catch (MalformedURLException ex) {
-			ex.printStackTrace();
+
+		if (mappingIsInJar) {
+			url = this.getClass().getResource(mappingsFile);
+		} else {
+			try {
+				url = new File(mappingsFile).toURI().toURL();
+			} catch (MalformedURLException ex) {
+				ex.printStackTrace();
+			}
 		}
+
 		// Silk end.
 
 		if (url != null) {
@@ -112,7 +132,7 @@ public class MappingConfigurationSilk extends MappingConfiguration {
 					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
 				}
 			} catch (IOException | ZipError e) {
-				throw new RuntimeException("Error reading "+url, e);
+				throw new RuntimeException("Error reading " + url, e);
 			}
 		}
 

@@ -68,8 +68,7 @@ public class MappingConfiguration {
 	}
 
 	public String getTargetNamespace() {
-//		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
-		return "official";	// Silk: We always run on production environment.
+		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
 	}
 
 	public boolean requiresPackageAccessHack() {

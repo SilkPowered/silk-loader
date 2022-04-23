@@ -3,6 +3,10 @@ apply plugin: "fabric-loom"
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
+project.version = "1.18.2-1.0.0"
+project.archivesBaseName = "silk"
+project.group = "cx.rain.mc"
+
 loom {
 	runConfigs.configureEach {
 		ideConfigGenerated = true
@@ -51,6 +55,12 @@ dependencies {
 // Silk: remove minecraft provided by loom.
 configurations.all {
 	exclude module: 'minecraft-merged-named'
+}
+
+sourceSets {
+	main {
+		java.srcDirs = ['src/main/java']
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
