@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import cx.rain.silk.Silk;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -62,8 +64,6 @@ public final class Knot extends FabricLauncherBase {
 	private final List<Path> classPath = new ArrayList<>();
 	private GameProvider provider;
 	private boolean unlocked;
-
-	private boolean doesFirstStageFinished = false;	// Silk: Flag of stage one.
 
 	public static void launch(String[] args, EnvType type) {
 		setupUncaughtExceptionHandler();
@@ -264,8 +264,9 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public String getTargetNamespace() {
 		// TODO: Won't work outside of Yarn
-		return isDevelopment ? "named" : "intermediary";
-//		return doesFirstStageFinished ? "bukkit" : "official";	// Silk.
+
+		// Silk.
+		return Silk.lastPhase.getTo();
 	}
 
 	@Override
@@ -367,9 +368,5 @@ public final class Knot extends FabricLauncherBase {
 
 	public static void main(String[] args) {
 		new Knot(null).init(args);
-	}
-
-	public void setFirstStageFinished() {
-		doesFirstStageFinished = true;
 	}
 }

@@ -64,14 +64,14 @@ public final class RuntimeModRemapper {
 			if (mod.getRequiresRemap()) {
 				modsToRemap.add(mod);
 			}
-//			if (mod.getId().equals("minecraft")) {	// Silk: Remap spigot jar.
+//			if (mod.getId().equals("minecraft")) {	// Silk: Remap spigot jar.	// Todo.
 //				modsToRemap.add(mod);
 //			}
 		}
 
-		if (modsToRemap.isEmpty()) return;
-
-//		FabricLauncher launcher = FabricLauncherBase.getLauncher();
+		if (modsToRemap.isEmpty()) {
+			return;
+		}
 
 		// Silk: Add Mixin Extension Hard remapping.
 		Set<MixinExtension.AnnotationTarget> annotationTargets = new HashSet<>();
@@ -150,7 +150,7 @@ public final class RuntimeModRemapper {
 						FileSystem fs = jarFs.get();
 						info.accessWidener = remapAccessWidener(Files.readAllBytes(fs.getPath(accessWidener)), remapper.getRemapper(), originNamespace, targetNamespace);
 					} catch (Throwable t) {
-						throw new RuntimeException("Error remapping access widener for mod '"+mod.getId()+"'!", t);
+						throw new RuntimeException("Error remapping access widener for mod '" + mod.getId() + "'!", t);
 					}
 				}
 			}
@@ -202,9 +202,7 @@ public final class RuntimeModRemapper {
 
 	private static byte[] remapAccessWidener(byte[] input, Remapper remapper, String originNamespace, String targetNamespace) {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
-//		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
 		// Silk.
-		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, originNamespace, targetNamespace);
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
 		accessWidenerReader.read(input, originNamespace);

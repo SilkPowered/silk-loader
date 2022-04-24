@@ -16,6 +16,7 @@
 
 package cx.rain.silk;
 
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -47,13 +48,13 @@ public class SilkNamedMappingConfiguration extends MappingConfiguration {
 	private boolean mappingIsInJar;
 
 	public SilkNamedMappingConfiguration(RemapPhase phase) {
-		this(phase, "silk-" + phase.getFrom() + "-" + phase.getTo() + ".tiny", true);
+		this(phase, "silk-" + Silk.MC_VERSION + "-" + phase.getMappingsTypeName() + ".tiny", true);
 	}
 
 	public SilkNamedMappingConfiguration(RemapPhase phase, String filename, boolean isMappingsInsideJar) {
 		mappingPhase = phase;
 		mappingsFile = filename;
-		mappingIsInJar = isMappingsInsideJar;
+		mappingIsInJar = isMappingsInsideJar && !FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
 	@Override
