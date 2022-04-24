@@ -39,4 +39,8 @@ public class Silk {
 			throw new RuntimeException(ex);
 		}
 	}
+
+	public static boolean isNoRemap() {
+		return Boolean.parseBoolean(System.getProperty("silk.noRemap", "false"));
+	}
 }

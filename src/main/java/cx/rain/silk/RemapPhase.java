@@ -14,6 +14,8 @@ public enum RemapPhase {
 	// For dev.
 	SpigotToOfficial("spigot", "official", false, false, "s2o"),
 	OfficialToNamedOfficial("official", "namedOfficial", false, true, "o2m"),
+
+	NoRemap("intermediary", "intermediary", true, true, "nop"),
 	;
 
 	private String fromName;
@@ -31,6 +33,10 @@ public enum RemapPhase {
 	}
 
 	public static List<RemapPhase> getModsPhases(boolean isDevelopment) {
+		if (Silk.isNoRemap()) {
+			return Arrays.asList(NoRemap);
+		}
+
 		if (isDevelopment) {
 			return Arrays.asList(IntermediaryToOfficial, OfficialToNamedOfficial);
 		} else {

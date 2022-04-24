@@ -81,9 +81,7 @@ public final class RuntimeModRemapper {
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(mapping.getMappings(), originNamespace, targetNamespace))
-				.renameInvalidLocals(true)
-				.rebuildSourceFilenames(true)
-				.resolveMissing(true)
+				.renameInvalidLocals(false)
 				.extension(mixinExtension)	// Silk: Attach to builder.
 				.build();
 		// Silk end.

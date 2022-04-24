@@ -201,7 +201,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private Path doSetup(RemapPhase phase, Path modDir) throws ModResolutionException {
-		boolean requiresRemap = true;	// silk: is a mod requires to remap.
+		boolean requiresRemap = (phase != RemapPhase.NoRemap);	// silk: is a mod requires to remap.
 		VersionOverrides versionOverrides = new VersionOverrides();
 		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
 
@@ -267,7 +267,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			silkOutput = silkCache.resolve(phase.getFrom() + "-" + phase.getTo());
 		}
 
-		RuntimeModRemapper.remap(modCandidates, silkOutput.resolve(Silk.SILK_TEMP_DIR), silkOutput, SilkNamedMappingConfiguration.get(phase), phase.getFrom(), phase.getTo());	// Silk: Pass arguments in.
+		if (requiresRemap) {
+			RuntimeModRemapper.remap(modCandidates, silkOutput.resolve(Silk.SILK_TEMP_DIR), silkOutput, SilkNamedMappingConfiguration.get(phase), phase.getFrom(), phase.getTo());	// Silk: Pass arguments in.
+		}
 
 		// shuffle mods in-dev to reduce the risk of false order reliance, apply late load requests
 
@@ -469,7 +471,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			if (path == null) throw new RuntimeException(String.format("Missing accessWidener file %s from mod %s", accessWidener, modContainer.getMetadata().getId()));
 
 			try (BufferedReader reader = Files.newBufferedReader(path)) {
-//				accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
 				accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
