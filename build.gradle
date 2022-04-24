@@ -173,7 +173,19 @@ task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
 	outjars proguardFile
 	configuration file("proguard.conf")
 }
-build.dependsOn proguardJar
+
+task embedSilk(type: Jar, dependsOn: proguardJar) {
+	from zipTree(proguardFile)
+
+	from("${project(":minecraft:minecraft-test").buildDir}/libs") {
+		include("**/*")
+		into("META-INF/silk")
+	}
+
+	archiveClassifier = "silk"
+}
+
+build.dependsOn embedSilk
 
 tasks.withType(AbstractArchiveTask) {
 	preserveFileTimestamps = false
@@ -362,17 +374,7 @@ task checkVersion {
 publish.mustRunAfter checkVersion
 github.mustRunAfter checkVersion
 
-
-task move {
-	Files.deleteIfExists(Paths.get("${projectDir}/run/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12.jar"))
-
-	if (Files.exists(Paths.get("${projectDir}/build/libs/fabric-loader-0.12.12+local-fat.jar"))) {
-		Files.copy(Paths.get("${projectDir}/build/libs/fabric-loader-0.12.12+local-fat.jar"),
-				Paths.get("${projectDir}/run/libraries/net/fabricmc/fabric-loader/0.12.12/fabric-loader-0.12.12.jar"))
-	}
-}
-
-move.dependsOn(build)
-
 // Silk: copy resources.
 tasks.compileJava.dependsOn processResources
+
+

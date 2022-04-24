@@ -16,18 +16,14 @@
 
 package net.fabricmc.loader.impl.launch;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryToBukkitRemapper;
-import net.fabricmc.mapping.tree.TinyMappingFactory;
-
+import cx.rain.silk.RemapPhase;
+import cx.rain.silk.SilkNamedMappingConfiguration;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.FabricUtil;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -65,34 +61,28 @@ public final class FabricMixinBootstrap {
 		System.setProperty("mixin.service", MixinServiceKnot.class.getName());
 
 		MixinBootstrap.init();
+		System.setProperty("mixin.env.remapRefMap", "true");
+
+		List<RemapPhase> phases = RemapPhase.getModsPhases(FabricLauncherBase.getLauncher().isDevelopment());
 
 		// Silk: We are always running on production mode.
-		MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-		TinyTree mappings = mappingConfiguration.getMappings();
+		for (RemapPhase phase : phases) {
+			MappingConfiguration mappingConfiguration = new SilkNamedMappingConfiguration(phase);
+			TinyTree mappings = mappingConfiguration.getMappings();
 
-		TinyTree silkMappings1 = new MappingConfigurationSilk("silk-1.18.2.tiny").getMappings();
-		TinyTree silkMappings2 = new MappingConfigurationSilk("silk-1.18.2-2.tiny").getMappings();
+			if (mappings != null) {
+				List<String> namespaces = mappings.getMetadata().getNamespaces();
 
-		if (mappings != null) {
-			List<String> namespaces = mappings.getMetadata().getNamespaces();
-
-			if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
-				System.setProperty("mixin.env.remapRefMap", "true");
-
-				try {
-					// Silk: Add our remapper to chain.
-					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
-					MixinIntermediaryDevRemapper remapper2 = new MixinIntermediaryDevRemapper(silkMappings1, "official", "silk-tmp");
-					MixinIntermediaryDevRemapper remapper3 = new MixinIntermediaryDevRemapper(silkMappings2, "silk-tmp", "bukkit");
-
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper2);
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper3);
-
-					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings for mixin remapper!");
-				} catch (Exception e) {
-					Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
-					e.printStackTrace();
+				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
+					try {
+						// Silk: Add our remapper to chain.
+						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, phase.getFrom(), phase.getTo());
+						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+						Log.info(LogCategory.MIXIN, "Loaded Silk running mappings " + phase.getFrom() + "-" + phase.getTo() + " for mixin remapper!");
+					} catch (Exception e) {
+						Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
+						e.printStackTrace();
+					}
 				}
 			}
 		}

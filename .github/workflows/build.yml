@@ -4,7 +4,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [8-jdk, 11-jdk, 16-jdk, 17-jdk]
+        java: [17-jdk]
     runs-on: ubuntu-20.04
     container:
       image: eclipse-temurin:${{ matrix.java }}
@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: gradle/wrapper-validation-action@v1
+      - run: ./gradlew :minecraft:minecraft-test:build
       - run: ./gradlew build publishToMavenLocal --stacktrace --warning-mode fail
       - uses: actions/upload-artifact@v2
         with:
