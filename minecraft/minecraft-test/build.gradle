@@ -3,9 +3,9 @@ apply plugin: "fabric-loom"
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-project.version = "1.18.2-1.0.0"
-project.archivesBaseName = "silk"
-project.group = "cx.rain.mc"
+project.archivesBaseName = project.silk_archive
+project.version = project.silk_version
+project.group = project.silk_group
 
 loom {
 	runConfigs.configureEach {
@@ -44,10 +44,6 @@ dependencies {
 	// Silk: For developing.
 	implementation "org.spigotmc:spigot:1.18.2-R0.1-20220416.071816-3:remapped-mojang"
 
-//	runtimeClasspath(":minecraft:minecraft-test") {
-//		exclude module: "minecraft-merged-named"
-//	}
-//
 //	modImplementation "net.fabricmc.fabric-api:fabric-api:0.51.1+1.18.2"
 	// Silk end.
 }

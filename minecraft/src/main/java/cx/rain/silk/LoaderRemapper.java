@@ -1,4 +1,4 @@
-package cx.rain.mc.silk;
+package cx.rain.silk;
 
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
 

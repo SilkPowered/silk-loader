@@ -173,7 +173,19 @@ task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
 	outjars proguardFile
 	configuration file("proguard.conf")
 }
-build.dependsOn proguardJar
+
+task embedSilk(type: Jar, dependsOn: proguardJar) {
+	from zipTree(proguardFile)
+
+	from("${project(":minecraft:minecraft-test").buildDir}/libs") {
+		include("**/*")
+		into("META-INF/silk")
+	}
+
+	archiveClassifier = "silk"
+}
+
+build.dependsOn embedSilk
 
 tasks.withType(AbstractArchiveTask) {
 	preserveFileTimestamps = false

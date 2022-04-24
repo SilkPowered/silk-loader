@@ -1,4 +1,4 @@
-package cx.rain.mc.silk;
+package cx.rain.silk;
 
 import java.io.File;
 import java.io.IOException;
