@@ -67,22 +67,18 @@ public final class FabricMixinBootstrap {
 
 		// Silk: We are always running on production mode.
 		for (RemapPhase phase : phases) {
-			MappingConfiguration mappingConfiguration = new SilkNamedMappingConfiguration(phase);
+			MappingConfiguration mappingConfiguration = SilkNamedMappingConfiguration.get(phase);
 			TinyTree mappings = mappingConfiguration.getMappings();
 
 			if (mappings != null) {
-				List<String> namespaces = mappings.getMetadata().getNamespaces();
-
-				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
-					try {
-						// Silk: Add our remapper to chain.
-						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, phase.getFrom(), phase.getTo());
-						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-						Log.info(LogCategory.MIXIN, "Loaded Silk running mappings " + phase.getFrom() + "-" + phase.getTo() + " for mixin remapper!");
-					} catch (Exception e) {
-						Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
-						e.printStackTrace();
-					}
+				try {
+					// Silk: Add our remapper to chain.
+					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, phase.getFrom(), phase.getTo());
+					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings " + phase.getFrom() + "-" + phase.getTo() + " for mixin remapper!");
+				} catch (Exception e) {
+					Log.error(LogCategory.MIXIN, "Silk running environment setup error - the game will probably crash soon!");
+					e.printStackTrace();
 				}
 			}
 		}

@@ -75,21 +75,25 @@ public final class RuntimeModRemapper {
 
 		// Silk: Add Mixin Extension Hard remapping.
 		Set<MixinExtension.AnnotationTarget> annotationTargets = new HashSet<>();
-		annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
 		annotationTargets.add(MixinExtension.AnnotationTarget.SOFT);
+		annotationTargets.add(MixinExtension.AnnotationTarget.HARD);
 		MixinExtension mixinExtension = new MixinExtension(annotationTargets);
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(mapping.getMappings(), originNamespace, targetNamespace))
-				.renameInvalidLocals(false)
+				.renameInvalidLocals(true)
+				.rebuildSourceFilenames(true)
+				.resolveMissing(true)
 				.extension(mixinExtension)	// Silk: Attach to builder.
 				.build();
 		// Silk end.
 
-		try {
-			remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to populate remap classpath", e);
+		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+			try {
+				remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to populate remap classpath", e);
+			}
 		}
 
 		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();

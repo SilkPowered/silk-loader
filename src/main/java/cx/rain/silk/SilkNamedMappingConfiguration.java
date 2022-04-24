@@ -32,6 +32,8 @@ import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
@@ -45,16 +47,23 @@ public class SilkNamedMappingConfiguration extends MappingConfiguration {
 
 	private RemapPhase mappingPhase;
 	private String mappingsFile;
-	private boolean mappingIsInJar;
 
-	public SilkNamedMappingConfiguration(RemapPhase phase) {
-		this(phase, "silk-" + Silk.MC_VERSION + "-" + phase.getMappingsTypeName() + ".tiny", true);
+	protected static Map<RemapPhase, SilkNamedMappingConfiguration> mappingsDictionary = new HashMap<>();
+
+	public static SilkNamedMappingConfiguration get(RemapPhase phase) {
+		if (!mappingsDictionary.containsKey(phase)) {
+			mappingsDictionary.put(phase, new SilkNamedMappingConfiguration(phase));
+		}
+		return mappingsDictionary.get(phase);
 	}
 
-	public SilkNamedMappingConfiguration(RemapPhase phase, String filename, boolean isMappingsInsideJar) {
+	protected SilkNamedMappingConfiguration(RemapPhase phase) {
+		this(phase, "silk-" + Silk.MC_VERSION + "-" + phase.getMappingsTypeName() + ".tiny");
+	}
+
+	protected SilkNamedMappingConfiguration(RemapPhase phase, String filename) {
 		mappingPhase = phase;
 		mappingsFile = filename;
-		mappingIsInJar = isMappingsInsideJar && !FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
 	@Override
@@ -101,15 +110,15 @@ public class SilkNamedMappingConfiguration extends MappingConfiguration {
 
 		// Silk: Get mappings from file.
 		URL url = null;
-
-		if (mappingIsInJar) {
-			url = this.getClass().getResource(mappingsFile);
-		} else {
+		File file = new File(mappingsFile);
+		if (file.exists()) {
 			try {
-				url = new File(mappingsFile).toURI().toURL();
+				url = file.toURI().toURL();
 			} catch (MalformedURLException ex) {
 				ex.printStackTrace();
 			}
+		} else {
+			url = this.getClass().getResource("/" + mappingsFile);
 		}
 
 		// Silk end.

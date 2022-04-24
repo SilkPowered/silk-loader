@@ -18,7 +18,7 @@ public class LoaderRemapper {
 	}
 
 	public static LoaderRemapper getRemapper(RemapPhase phase) {
-		return new LoaderRemapper(phase, new SilkNamedMappingConfiguration(phase));
+		return new LoaderRemapper(phase, SilkNamedMappingConfiguration.get(phase));
 	}
 
 	public void doRemap(Path inputDir, Path outputDir) {
