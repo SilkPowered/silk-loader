@@ -24,11 +24,15 @@ import java.util.Map;
 
 import cx.rain.silk.RemapPhase;
 import cx.rain.silk.SilkNamedMappingConfiguration;
+
+import net.fabricmc.mapping.util.MixinRemapper;
+
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.FabricUtil;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
+import org.spongepowered.asm.mixin.extensibility.IRemapper;
 import org.spongepowered.asm.mixin.transformer.Config;
 
 import net.fabricmc.api.EnvType;
@@ -73,7 +77,7 @@ public final class FabricMixinBootstrap {
 			if (mappings != null) {
 				try {
 					// Silk: Add our remapper to chain.
-					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, phase.getFrom(), phase.getTo());
+					IRemapper remapper = new MixinIntermediaryDevRemapper(mappings, phase.getFrom(), phase.getTo());
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 					Log.info(LogCategory.MIXIN, "Loaded Silk running mappings " + phase.getFrom() + "-" + phase.getTo() + " for mixin remapper!");
 				} catch (Exception e) {

@@ -27,7 +27,7 @@ public abstract class MixinDedicatedServer {
 		rootLogger = (org.apache.logging.log4j.core.Logger) org.apache.logging.log4j.LogManager.getRootLogger();
 		appenders = rootLogger.getAppenders();
 
-		logger.info("Logger captured!");
+		logger.info("Logger captured.");
 	}
 
 	@Inject(method = "initServer",
@@ -46,6 +46,6 @@ public abstract class MixinDedicatedServer {
 		System.setOut(IoBuilder.forLogger(rootLogger).setLevel(Level.INFO).buildPrintStream());
 		System.setErr(IoBuilder.forLogger(rootLogger).setLevel(Level.WARN).buildPrintStream());
 
-		logger.info("Logger restored.");
+		logger.info("Logger restored!");
 	}
 }

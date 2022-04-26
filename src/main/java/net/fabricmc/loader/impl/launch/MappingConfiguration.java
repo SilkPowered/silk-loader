@@ -73,8 +73,8 @@ public class MappingConfiguration {
 
 	public boolean requiresPackageAccessHack() {
 		// TODO
-//		return getTargetNamespace().equals("named");
-		return getTargetNamespace().equals("official");	// Silk: Change named to official.
+		return getTargetNamespace().equals("named");
+//		return getTargetNamespace().equals("official");	// Silk: Change named to official.
 	}
 
 	private void initialize() {

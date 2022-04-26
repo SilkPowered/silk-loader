@@ -86,13 +86,19 @@ public final class RuntimeModRemapper {
 				.build();
 		// Silk end.
 
-		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-			try {
-				remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
-			} catch (IOException e) {
-				throw new RuntimeException("Failed to populate remap classpath", e);
-			}
+		try {
+			remapper.readClassPath(getRemapClasspath().toArray(new Path[0]));
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to populate remap classpath", e);
 		}
+
+//		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+//			try {
+//				remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
+//			} catch (IOException e) {
+//				throw new RuntimeException("Failed to populate remap classpath", e);
+//			}
+//		}
 
 		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
 
@@ -212,17 +218,9 @@ public final class RuntimeModRemapper {
 	}
 
 	private static List<Path> getRemapClasspath() throws IOException {
-		String remapClasspathFile = System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE);
-
-		if (remapClasspathFile == null) {
-			throw new RuntimeException("No remapClasspathFile provided");
-		}
-
-		String content = new String(Files.readAllBytes(Paths.get(remapClasspathFile)), StandardCharsets.UTF_8);
-
-		return Arrays.stream(content.split(File.pathSeparator))
-				.map(Paths::get)
-				.collect(Collectors.toList());
+		String classpath = System.getProperty("java.class.path");
+		String[] classpathEntries = classpath.split(File.pathSeparator);
+		return Arrays.stream(classpathEntries).map(Paths::get).collect(Collectors.toList());
 	}
 
 	private static class RemapInfo {

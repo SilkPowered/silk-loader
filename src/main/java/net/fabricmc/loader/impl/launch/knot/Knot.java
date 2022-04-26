@@ -40,6 +40,8 @@ import java.util.zip.ZipFile;
 
 import cx.rain.silk.Silk;
 
+import cx.rain.silk.SpigotJarRemapper;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -124,8 +126,20 @@ public final class Knot extends FabricLauncherBase {
 			classPath.add(path);
 		}
 
+		// silk: Remap spigot jars.
+		// Todo: no direct path uses.
+		new SpigotJarRemapper(Paths.get("silk-1.18.2-s2o.tiny"), "spigot", "official")
+				.setOutput(Paths.get(".silk/temp"))
+				.doRemap();
+
+		new SpigotJarRemapper(Paths.get("silk-1.18.2-i2o.tiny"), "official", "intermediary")
+				.clearJar()
+				.addJar(Paths.get(".silk/temp/server.jar"))
+				.setOutput(Paths.get(".silk/server"))
+				.doRemap();
+
 		// silk: Add spigot jars.
-		File versionsDir = new File("bundler/versions");
+		File versionsDir = new File(".silk/server");
 		if (versionsDir.exists()) {
 			for (File f : versionsDir.listFiles()) {
 				classPath.add(f.toPath());
@@ -266,7 +280,8 @@ public final class Knot extends FabricLauncherBase {
 		// TODO: Won't work outside of Yarn
 
 		// Silk.
-		return Silk.lastPhase.getTo();
+//		return Silk.lastPhase.getTo();
+		return isDevelopment ? "named" : "intermediary";
 	}
 
 	@Override

@@ -34,7 +34,7 @@ public enum RemapPhase {
 
 	public static List<RemapPhase> getModsPhases(boolean isDevelopment) {
 		if (Silk.isNoRemap()) {
-			return Arrays.asList(NoRemap);
+			return Collections.singletonList(NoRemap);
 		}
 
 		if (isDevelopment) {
@@ -46,7 +46,7 @@ public enum RemapPhase {
 
 	public static List<RemapPhase> getPluginsPhases(boolean isDevelopment) {
 		if (isDevelopment) {
-			return Arrays.asList(SpigotToOfficial);
+			return Arrays.asList(SpigotToOfficial, OfficialToNamedOfficial);
 		} else {
 			return Collections.emptyList();
 		}
