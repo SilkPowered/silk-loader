@@ -28,19 +28,25 @@ public class SpigotJarRemapper extends RemapperBase {
 	private Path outputDir;
 	private Set<Path> jarsToRemap = new HashSet<>();
 
-	protected TinyRemapper remapper;
+	protected TinyRemapper.Builder remapperBuilder;
 
-	public SpigotJarRemapper(Path mappingsPath, String from, String to) {
-		remapper = TinyRemapper.newRemapper()
-				.withMappings(getMappings(mappingsPath, from, to))
-				.build();
+	public SpigotJarRemapper() {
+		remapperBuilder = TinyRemapper.newRemapper()
+				.ignoreConflicts(true);
+	}
 
-		// Todo
-		for (Path p : Arrays.stream(Paths.get("bundler/versions").toFile().listFiles())
-				.map(File::toPath)
-				.collect(Collectors.toList())) {
-			addJar(p);
+	public SpigotJarRemapper withMappings(URL mappingsUrl, String from, String to) {
+		remapperBuilder.withMappings(getMappings(mappingsUrl, from, to));
+		return this;
+	}
+
+	public SpigotJarRemapper withMappings(Path mappingsPath, String from, String to) {
+		try {
+			remapperBuilder.withMappings(getMappings(mappingsPath.toUri().toURL(), from, to));
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
 		}
+		return this;
 	}
 
 	public SpigotJarRemapper clearJar() {
@@ -51,6 +57,12 @@ public class SpigotJarRemapper extends RemapperBase {
 
 	public SpigotJarRemapper addJar(Path jar) {
 		jarsToRemap.add(jar);
+
+		return this;
+	}
+
+	public SpigotJarRemapper addJars(List<Path> jar) {
+		jarsToRemap.addAll(jar);
 
 		return this;
 	}
@@ -73,10 +85,10 @@ public class SpigotJarRemapper extends RemapperBase {
 	}
 
 	public void doRemap() {
-		Path tmp = outputDir.resolve("server.jar");
-
+		TinyRemapper remapper = remapperBuilder.build();
 		for (Path input : jarsToRemap) {
-			try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(tmp).build()) {
+			Path outFile = outputDir.resolve(input.getFileName());
+			try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(outFile).build()) {
 				InputTag tag = remapper.createInputTag();
 				outputConsumer.addNonClassFiles(input, NonClassCopyMode.FIX_META_INF, remapper);
 
@@ -92,10 +104,9 @@ public class SpigotJarRemapper extends RemapperBase {
 		remapper.finish();
 	}
 
-	protected IMappingProvider getMappings(Path mappings, String from, String to) {
+	protected IMappingProvider getMappings(URL mappings, String from, String to) {
 		try {
-			URL url = mappings.toUri().toURL();
-			URLConnection connection = url.openConnection();
+			URLConnection connection = mappings.openConnection();
 
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 				TinyTree mappingsTree = TinyMappingFactory.loadWithDetection(reader);

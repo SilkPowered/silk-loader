@@ -127,21 +127,28 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		// silk: Remap spigot jars.
-		// Todo: no direct path uses.
-		new SpigotJarRemapper(Paths.get("silk-1.18.2-s2o.tiny"), "spigot", "official")
-				.setOutput(Paths.get(".silk/temp"))
-				.doRemap();
 
-		new SpigotJarRemapper(Paths.get("silk-1.18.2-i2o.tiny"), "official", "intermediary")
-				.clearJar()
-				.addJar(Paths.get(".silk/temp/server.jar"))
-				.setOutput(Paths.get(".silk/server"))
-				.doRemap();
+		// Todo: no direct path uses.
+		File serverDir = new File(".silk/server");
+
+		if (!serverDir.exists() || serverDir.listFiles().length == 0) {
+			Log.info(LogCategory.GAME_REMAP, "Intermediary spigot jar not found, creating...");	// Todo: auto detect outdated jars.
+			new SpigotJarRemapper()
+					.withMappings(Paths.get("silk-1.18.2-s2o.tiny"), "spigot", "official")
+					.addJars(Arrays.stream(new File("bundler/versions").listFiles()).map(File::toPath).collect(Collectors.toList()))
+					.setOutput(Paths.get(".silk/temp"))
+					.doRemap();
+
+			new SpigotJarRemapper()
+					.withMappings(this.getClass().getClassLoader().getResource("mappings/mappings.tiny"), "official", "intermediary")
+					.addJars(Arrays.stream(new File(".silk/temp").listFiles()).map(File::toPath).collect(Collectors.toList()))
+					.setOutput(Paths.get(".silk/server"))
+					.doRemap();
+		}
 
 		// silk: Add spigot jars.
-		File versionsDir = new File(".silk/server");
-		if (versionsDir.exists()) {
-			for (File f : versionsDir.listFiles()) {
+		if (serverDir.exists()) {
+			for (File f : serverDir.listFiles()) {
 				classPath.add(f.toPath());
 			}
 		}

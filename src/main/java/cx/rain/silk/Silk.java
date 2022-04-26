@@ -33,6 +33,11 @@ public class Silk {
 
 	private static void extractFile(String embedName) {
 		try {
+			File dir = new File(SILK_MOD_DIR);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+
 			InputStream is = Silk.class.getResourceAsStream("/META-INF/silk/" + embedName);
 			Files.copy(is, silkModFile.toPath());
 		} catch (IOException ex) {
