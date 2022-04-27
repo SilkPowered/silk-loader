@@ -17,6 +17,11 @@ repositories {
 	maven {
 		url = "https://repo.codemc.io/repository/nms/"
 	}
+
+	maven {
+		name = "Jitpack"
+		url 'https://jitpack.io/'
+	}
 }
 
 dependencies {
@@ -41,6 +46,9 @@ dependencies {
 		exclude module: 'guava'
 	}
 
+	// Fabric-ASM (MM)
+	modImplementation "com.github.Chocohead:Fabric-ASM:${project.fabric_asm_version}"
+	include "com.github.Chocohead:Fabric-ASM:${project.fabric_asm_version}"
 
 	// Silk: For developing.
 	implementation "org.spigotmc:spigot:1.18.2-R0.1-20220416.071816-3:remapped-mojang"

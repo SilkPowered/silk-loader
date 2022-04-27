@@ -4,7 +4,11 @@
   "name": "Silk",
   "version": "1.18.2-1.0.0",
   "mixins": [
-    "silk.mixins.json",
-    "silk.fabric_api.entity_events.mixins.json"
-  ]
+    "silk.mixins.json"
+  ],
+  "entrypoints": {
+    "mm:early_risers": [
+      "cx.rain.silk.SilkModSetup"
+    ]
+  }
 }
