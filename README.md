@@ -13,8 +13,8 @@ It provides mod loading facilities and useful abstractions for other mods to use
 - [ ] Run mods using Mixin.
 
 ## License
-Copyright qyl27.
-Licensed under the Apache License 2.0.
+Copyright qyl27.  
+Licensed under the GNU General Public License 3.0.
 
 ### Credit
 - Original code ([fabric-loader](https://github.com/FabricMC/fabric-loader)) by [FabricMC](https://github.com/FabricMC/fabric-loader) (Apache 2.0)
