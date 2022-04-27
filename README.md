@@ -24,4 +24,5 @@ Licensed under the GNU General Public License 3.0.
 ### Libraries and some code snippet.
 - Loader code ([fabric-loader](https://github.com/FabricMC/fabric-loader)) by [FabricMC](https://github.com/FabricMC/fabric-loader) (Apache 2.0)
 - LoggerNamePatternSelector by [Minecrell](https://github.com/Minecrell/TerminalConsoleAppender) (MIT)
-- Mixin util by [OptiFabric](https://github.com/Chocohead/OptiFabric) (MPL 2.0)
+- Mixin utilities by [OptiFabric](https://github.com/Chocohead/OptiFabric) (MPL 2.0)
+- Fabric invasive code modification by [Fabric-ASM](https://github.com/Chocohead/Fabric-ASM) (MPL 2.0)
