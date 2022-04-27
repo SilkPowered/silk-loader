@@ -177,7 +177,7 @@ task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
 task embedSilk(type: Jar, dependsOn: proguardJar) {
 	from zipTree(proguardFile)
 
-	from("${project(":minecraft:minecraft-test").buildDir}/libs") {
+	from("${project(":minecraft:silk").buildDir}/libs") {
 		include("**/*")
 		into("META-INF/silk")
 	}

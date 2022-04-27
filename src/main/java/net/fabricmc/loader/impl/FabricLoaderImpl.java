@@ -324,11 +324,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		Iterator<RemapPhase> it = phases.iterator();
 
 		Path lastPath = modDir;
-		do {
+		while (it.hasNext()) {
 			RemapPhase phase = it.next();
 			Silk.lastPhase = phase;
 			lastPath = doSetup(phase, lastPath);
-		} while (it.hasNext());
+		}
 	}
 
 	private void finishModLoading() {

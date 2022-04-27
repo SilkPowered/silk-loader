@@ -9,7 +9,8 @@ public enum RemapPhase {
 	IntermediaryToOfficial("intermediary", "official", true, false, "i2o"),
 
 	// For prod.
-	OfficialToSpigot("official", "spigot", false, true, "o2s"),
+	OfficialToSpigot("official", "spigot", false, true, "s2o"),
+	OfficialToOfficial("official", "intermediary", false, true, "i2o"),
 
 	// For dev.
 	SpigotToOfficial("spigot", "official", false, false, "s2o"),
@@ -33,22 +34,26 @@ public enum RemapPhase {
 	}
 
 	public static List<RemapPhase> getModsPhases(boolean isDevelopment) {
-		if (Silk.isNoRemap()) {
-			return Collections.singletonList(NoRemap);
-		}
+//		if (Silk.isNoRemap()) {
+//			return Collections.singletonList(NoRemap);
+//		}
+//
+//		if (isDevelopment) {
+//			return Arrays.asList(IntermediaryToOfficial, OfficialToNamedOfficial);
+//		} else {
+//			return Arrays.asList(IntermediaryToOfficial, OfficialToSpigot);
+//		}
 
-		if (isDevelopment) {
-			return Arrays.asList(IntermediaryToOfficial, OfficialToNamedOfficial);
-		} else {
-			return Arrays.asList(IntermediaryToOfficial, OfficialToSpigot);
-		}
+		// Fixme: 2022.4.26 breaks dev env.
+		// silk: no remap on any env.
+		return Collections.singletonList(NoRemap);	// Do not use empty list.
 	}
 
 	public static List<RemapPhase> getPluginsPhases(boolean isDevelopment) {
 		if (isDevelopment) {
 			return Arrays.asList(SpigotToOfficial, OfficialToNamedOfficial);
 		} else {
-			return Collections.emptyList();
+			return Arrays.asList(SpigotToOfficial, IntermediaryToOfficial);
 		}
 	}
 

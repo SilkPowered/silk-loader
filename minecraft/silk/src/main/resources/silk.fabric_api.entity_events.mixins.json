@@ -1,0 +1,9 @@
+{
+    "required": false,
+    "parent": "silk.mixins.json",
+    "plugin": "me.modmuss50.optifabric.compat.InterceptingMixinPlugin",
+    "package": "cx.rain.silk.compat.mods.fabric_api.entity_events.mixin",
+    "mixins": [
+        "LivingEntityMixin"
+    ]
+}

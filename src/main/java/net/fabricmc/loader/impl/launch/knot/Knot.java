@@ -128,28 +128,31 @@ public final class Knot extends FabricLauncherBase {
 
 		// silk: Remap spigot jars.
 
+		boolean shouldRestart = false;
+
 		// Todo: no direct path uses.
-		File serverDir = new File(".silk/server");
+		File serverDir = Silk.SILK_SERVER_DIR.toFile();
 
-		if (!serverDir.exists() || serverDir.listFiles().length == 0) {
-			Log.info(LogCategory.GAME_REMAP, "Intermediary spigot jar not found, creating...");	// Todo: auto detect outdated jars.
-			new SpigotJarRemapper()
-					.withMappings(Paths.get("silk-1.18.2-s2o.tiny"), "spigot", "official")
-					.addJars(Arrays.stream(new File("bundler/versions").listFiles()).map(File::toPath).collect(Collectors.toList()))
-					.setOutput(Paths.get(".silk/temp"))
-					.doRemap();
+		// Todo: more performance.
+		if (!serverDir.exists() || Arrays.stream(serverDir.listFiles()).noneMatch(File::isFile)) {
+			Log.info(LogCategory.GAME_REMAP, "Intermediary spigot jar not found, creating...");
 
-			new SpigotJarRemapper()
-					.withMappings(this.getClass().getClassLoader().getResource("mappings/mappings.tiny"), "official", "intermediary")
-					.addJars(Arrays.stream(new File(".silk/temp").listFiles()).map(File::toPath).collect(Collectors.toList()))
-					.setOutput(Paths.get(".silk/server"))
-					.doRemap();
+			if (new File("bundler/versions").exists()) {	// Todo: silk: support multi-version of server.
+				Silk.remapSpigot();
+
+			} else {
+				Log.info(LogCategory.GAME_REMAP, "Server is not unbundled. We will crash and re-launch soon.");
+				shouldRestart = true;
+			}
+
 		}
 
 		// silk: Add spigot jars.
-		if (serverDir.exists()) {
+		if (serverDir.exists() && serverDir.isDirectory()) {
 			for (File f : serverDir.listFiles()) {
-				classPath.add(f.toPath());
+				if (!f.isDirectory()) {
+					classPath.add(f.toPath());
+				}
 			}
 		}
 
@@ -182,6 +185,11 @@ public final class Knot extends FabricLauncherBase {
 
 		provider.unlockClassPath(this);
 		unlocked = true;
+
+		if (shouldRestart) {
+			Log.info(LogCategory.GAME_REMAP, "You must restart the server.");
+			System.exit(0);
+		}
 
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);

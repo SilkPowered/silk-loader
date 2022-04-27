@@ -1,0 +1,7 @@
+parent	si	official	spigot	intermediary
+class_3248	class_s1	aeq$b	net/minecraft/server/network/LoginListener$LoginHandler	net/minecraft/server/network/ServerLoginPacketListenerImpl$LoginHandler
+class_3251	class_s2	aes$a	net/minecraft/server/network/PacketStatusListener$ServerListPingEvent	net/minecraft/server/network/ServerStatusPacketListenerImpl$ServerListPingEvent
+class_3244	class_s3	aeo$b	net/minecraft/server/network/PlayerConnection$LatencySimulator	net/minecraft/server/network/ServerGamePacketListenerImpl$LatencySimulator
+class_s3	class_s4	aeo$b$a	net/minecraft/server/network/PlayerConnection$LatencySimulator$DelayedMessage	net/minecraft/server/network/ServerGamePacketListenerImpl$LatencySimulator$DelayedMessage
+
+

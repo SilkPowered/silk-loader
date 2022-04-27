@@ -22,9 +22,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SpigotJarRemapper extends RemapperBase {
+	private static final Pattern MC_LV_PATTERN = Pattern.compile("\\$\\$\\d+");
+
 	private Path outputDir;
 	private Set<Path> jarsToRemap = new HashSet<>();
 
@@ -33,6 +36,18 @@ public class SpigotJarRemapper extends RemapperBase {
 	public SpigotJarRemapper() {
 		remapperBuilder = TinyRemapper.newRemapper()
 				.ignoreConflicts(true);
+	}
+
+	public SpigotJarRemapper withStrict() {
+		remapperBuilder.renameInvalidLocals(true)
+//				.rebuildSourceFilenames(true)
+				.invalidLvNamePattern(MC_LV_PATTERN)
+//				.inferNameFromSameLvIndex(true)
+				.resolveMissing(true)
+				.fixPackageAccess(true)
+				.propagatePrivate(true);
+
+		return this;
 	}
 
 	public SpigotJarRemapper withMappings(URL mappingsUrl, String from, String to) {

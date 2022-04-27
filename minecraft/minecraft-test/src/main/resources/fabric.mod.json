@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "silk",
-  "name": "Silk",
-  "version": "1.18.2-1.0.0",
-  "mixins": [
-    "silk.mixins.json"
-  ]
-}
