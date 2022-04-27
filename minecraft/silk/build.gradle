@@ -41,6 +41,7 @@ dependencies {
 		exclude module: 'guava'
 	}
 
+
 	// Silk: For developing.
 	implementation "org.spigotmc:spigot:1.18.2-R0.1-20220416.071816-3:remapped-mojang"
 
@@ -61,5 +62,5 @@ sourceSets {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
-	it.options.release = 16
+	it.options.release = 17
 }

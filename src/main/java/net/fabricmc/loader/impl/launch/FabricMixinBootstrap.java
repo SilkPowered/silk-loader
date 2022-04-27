@@ -22,10 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cx.rain.silk.RemapPhase;
-import cx.rain.silk.SilkNamedMappingConfiguration;
-
-import net.fabricmc.mapping.util.MixinRemapper;
+import cx.rain.silk.loader.RemapPhase;
+import cx.rain.silk.loader.SilkNamedMappingConfiguration;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.FabricUtil;

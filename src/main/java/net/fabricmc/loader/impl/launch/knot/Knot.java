@@ -38,9 +38,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import cx.rain.silk.Silk;
-
-import cx.rain.silk.SpigotJarRemapper;
+import cx.rain.silk.loader.Silk;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -54,8 +52,6 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-
-import org.spongepowered.asm.service.MixinService;
 
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();

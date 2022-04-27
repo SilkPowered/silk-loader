@@ -1,4 +1,4 @@
-package cx.rain.silk;
+package cx.rain.silk.loader;
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -31,11 +31,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import cx.rain.silk.RemapPhase;
+import cx.rain.silk.loader.RemapPhase;
 
-import cx.rain.silk.Silk;
+import cx.rain.silk.loader.Silk;
 
-import cx.rain.silk.SilkNamedMappingConfiguration;
+import cx.rain.silk.loader.SilkNamedMappingConfiguration;
 
 import org.objectweb.asm.Opcodes;
 

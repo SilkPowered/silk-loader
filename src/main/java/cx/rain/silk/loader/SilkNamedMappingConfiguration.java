@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package cx.rain.silk;
+package cx.rain.silk.loader;
 
-import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;

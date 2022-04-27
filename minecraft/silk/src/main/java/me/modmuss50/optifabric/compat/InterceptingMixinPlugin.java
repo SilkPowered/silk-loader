@@ -1,5 +1,6 @@
 package me.modmuss50.optifabric.compat;
 
+import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,7 +13,12 @@ import com.google.common.base.MoreObjects;
 import me.modmuss50.optifabric.util.MixinUtils;
 import me.modmuss50.optifabric.util.MixinUtils.Mixin;
 import me.modmuss50.optifabric.util.RemappingUtils;
+
+import net.fabricmc.loader.api.FabricLoader;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -24,24 +30,47 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.asm.mixin.injection.Surrogate;
 import org.spongepowered.asm.mixin.transformer.ClassInfo.Method;
+import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.asm.util.Annotations;
 
 public class InterceptingMixinPlugin extends EmptyMixinPlugin {
+	private Logger logger = LogManager.getLogger("Silk/Mixin");
+
 	private @interface From {
 		String method();
 	}
 
-	/*@Override
+	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		try {
 			ClassNode mixin = MixinService.getService().getBytecodeProvider().getClassNode(mixinClassName, false);
-			return Annotations.getInvisible(mixin, DevOnly.class) == null || FabricLoader.getInstance().isDevelopmentEnvironment();
-		} catch (ClassNotFoundException | IOException e) {
-			System.err.println("Error fetching " + mixinClassName + " transforming " + targetClassName);
-			e.printStackTrace();
-			return true; //Possibly should be returning false if it can't be found?
+			if (Annotations.getInvisible(mixin, DevOnly.class) == null || FabricLoader.getInstance().isDevelopmentEnvironment()) {
+				return true;
+			} else {
+				return canApplyToExternal(targetClassName, mixin);
+			}
+		} catch (ClassNotFoundException | IOException ex) {
+			logger.debug(ex);
+			return false;
 		}
-	}*/
+	}
+
+	private boolean canApplyToExternal(String targetClassName, ClassNode mixin) {
+		// Silk: Optional interception.
+
+		AnnotationNode interception = Annotations.getInvisible(mixin, InterceptingMixin.class);
+		if (interception == null) {
+			return false;
+		}
+
+		try {
+			findMixin(targetClassName, Annotations.getValue(interception));
+		} catch (IllegalArgumentException ex) {
+			return false;
+		}
+
+		return true;
+	}
 
 	@Override
 	public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
@@ -50,13 +79,8 @@ public class InterceptingMixinPlugin extends EmptyMixinPlugin {
 		AnnotationNode interception = Annotations.getInvisible(thisMixin, InterceptingMixin.class);
 		if (interception == null) return; //Nothing to do for this particular Mixin
 
-		// Silk: Optional interception.
-		Mixin interceptionMixin;
-		try {
-			interceptionMixin = findMixin(targetClassName, Annotations.getValue(interception));
-		} catch (IllegalArgumentException ex) {
-			return;
-		}
+		Mixin interceptionMixin = findMixin(targetClassName, Annotations.getValue(interception));
+
 		on: for (MethodNode method : thisMixin.methods) {
 			AnnotationNode surrogateNode = Annotations.getInvisible(method, PlacatingSurrogate.class);
 
@@ -126,12 +150,7 @@ public class InterceptingMixinPlugin extends EmptyMixinPlugin {
 		if (interception == null) return; //Nothing to do for this particular Mixin
 
 		// Silk: Optional interception.
-		Mixin interceptionMixin;
-		try {
-			interceptionMixin = findMixin(targetClassName, Annotations.getValue(interception));
-		} catch (IllegalArgumentException ex) {
-			return;
-		}
+		Mixin interceptionMixin = findMixin(targetClassName, Annotations.getValue(interception));
 
 		Map<String, Method> shims = thisMixin.methods.stream().filter(method -> Annotations.getInvisible(method, Shim.class) != null).collect(Collectors.toMap(method -> method.name.concat(method.desc), method -> {
 			Method realMethod = interceptionMixin.getMethod(method.name, MoreObjects.firstNonNull(coerceDesc(method), method.desc));

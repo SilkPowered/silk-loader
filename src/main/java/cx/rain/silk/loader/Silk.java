@@ -1,4 +1,4 @@
-package cx.rain.silk;
+package cx.rain.silk.loader;
 
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.log.Log;
