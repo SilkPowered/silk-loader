@@ -5,7 +5,14 @@ import net.minecraft.server.dedicated.DedicatedServer;
 import cx.rain.silk.logging.LoggerNamePatternSelector;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
+import org.apache.logging.log4j.core.appender.rolling.OnStartupTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.filter.LevelRangeFilter;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.core.layout.PatternMatch;
 import org.apache.logging.log4j.core.layout.PatternSelector;
@@ -22,7 +29,8 @@ public abstract class DedicatedServerMixinLogger {
 
 	private org.apache.logging.log4j.core.Logger rootLogger;
 
-	@Inject(method = "initServer",
+	@SuppressWarnings("all")
+	@Inject(method = {"initServer", "method_3823"},
 			at = @At(
 					value = "INVOKE",
 					target = "Ljava/util/logging/Logger;getLogger(Ljava/lang/String;)Ljava/util/logging/Logger;"
@@ -34,7 +42,8 @@ public abstract class DedicatedServerMixinLogger {
 		logger.info("Logger captured.");
 	}
 
-	@Inject(method = "initServer",
+	@SuppressWarnings("all")
+	@Inject(method = {"initServer", "method_3823"},
 			at = @At(
 					value = "INVOKE",
 					target = "Ljava/lang/Thread;setDaemon(Z)V"
@@ -54,17 +63,11 @@ public abstract class DedicatedServerMixinLogger {
 	}
 
 	private void makeLogger() {
-		AnsiConsole.systemInstall();
-
 		// Console
 		String defaultConsolePattern = "%style{[%d{HH:mm:ss}]}{blue} %highlight{[%t/%level]}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=green, TRACE=blue} %style{(%logger{1})}{cyan} %highlight{%msg%n}{FATAL=red, ERROR=red, WARN=normal, INFO=normal, DEBUG=normal, TRACE=normal}";
 		PatternMatch nmsConsoleMatch = PatternMatch.newBuilder().setKey("net.minecraft.,com.mojang.").setPattern("%style{[%d{HH:mm:ss}]}{blue} %highlight{[%t/%level]}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=green, TRACE=blue} %style{(Minecraft)}{cyan} %highlight{%msg{nolookups}%n}{FATAL=red, ERROR=red, WARN=normal, INFO=normal, DEBUG=normal, TRACE=normal}").build();
-		PatternSelector consoleAppenderNamePatternSelector = LoggerNamePatternSelector.createSelector(defaultConsolePattern, new PatternMatch[]{ nmsConsoleMatch }, true, false, false, null);
-
-		PatternLayout consoleAppenderPatternLayout = PatternLayout.newBuilder()
-				.withPatternSelector(consoleAppenderNamePatternSelector)
-				.withDisableAnsi(false)
-				.build();
+		PatternSelector consoleAppenderNamePatternSelector = LoggerNamePatternSelector.createSelector(defaultConsolePattern, new PatternMatch[]{ nmsConsoleMatch }, true, false, true, null);
+		PatternLayout consoleAppenderPatternLayout = PatternLayout.newBuilder().withPatternSelector(consoleAppenderNamePatternSelector).withDisableAnsi(false).build();
 		ConsoleAppender consoleAppender = ConsoleAppender.newBuilder()
 				.setName("SysOut")
 				.setTarget(ConsoleAppender.Target.SYSTEM_OUT)
@@ -78,13 +81,45 @@ public abstract class DedicatedServerMixinLogger {
 		String defaultGuiPattern = "[%d{HH:mm:ss} %level] (%logger{1}) %msg{nolookups}%n";
 		PatternMatch nmsGuiMatch = PatternMatch.newBuilder().setKey("net.minecraft.,com.mojang.").setPattern("[%d{HH:mm:ss} %level] %msg{nolookups}%n").build();
 		PatternSelector queueLogAppenderNamePatternSelector = LoggerNamePatternSelector.createSelector(defaultGuiPattern, new PatternMatch[]{ nmsGuiMatch }, true, false, false, null);
-		PatternLayout queueLogAppenderPatternLayout = PatternLayout.newBuilder()
-				.withPatternSelector(queueLogAppenderNamePatternSelector)
-				.build();
+		PatternLayout queueLogAppenderPatternLayout = PatternLayout.newBuilder().withPatternSelector(queueLogAppenderNamePatternSelector).build();
 		QueueLogAppender queueLogAppender = QueueLogAppender.createAppender("ServerGuiConsole", "true", queueLogAppenderPatternLayout, null, "ServerGuiConsole");
 		queueLogAppender.start();
 		rootLogger.addAppender(queueLogAppender);
 
+		String logFilePattern = "[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg{nolookups}%n";
+		PatternMatch nmsFileMatch = PatternMatch.newBuilder().setKey("net.minecraft.,com.mojang.").setPattern("[%d{HH:mm:ss}] [%t/%level] (Minecraft) %msg{nolookups}%n").build();
+		PatternSelector logFileNamePatternSelector = LoggerNamePatternSelector.createSelector(logFilePattern, new PatternMatch[]{ nmsFileMatch }, true, false, false, null);
+		PatternLayout logFilePatternLayout = PatternLayout.newBuilder().withPatternSelector(logFileNamePatternSelector).withDisableAnsi(false).build();
+		OnStartupTriggeringPolicy startupPolicy = OnStartupTriggeringPolicy.createPolicy(1);
 
+		LevelRangeFilter infoFilter = LevelRangeFilter.createFilter(Level.FATAL, Level.INFO, null, null);
+		TimeBasedTriggeringPolicy timePolicy = TimeBasedTriggeringPolicy.newBuilder().build();
+		RollingRandomAccessFileAppender logFileAppender = RollingRandomAccessFileAppender.newBuilder()
+				.setName("LatestFile")
+				.setLayout(logFilePatternLayout)
+				.setFilter(infoFilter)
+				.withFileName("logs/latest.log")
+				.withFilePattern("logs/%d{yyyy-MM-dd}-%i.log.gz")
+				.withPolicy(timePolicy)
+				.withPolicy(startupPolicy)
+				.build();
+		logFileAppender.start();
+		rootLogger.addAppender(logFileAppender);
+
+		SizeBasedTriggeringPolicy sizePolicy = SizeBasedTriggeringPolicy.createPolicy("200MB");
+		LevelRangeFilter debugFilter = LevelRangeFilter.createFilter(Level.ALL, Level.DEBUG, null, null);
+		DefaultRolloverStrategy debugStrategy = DefaultRolloverStrategy.newBuilder().withMax("5").withFileIndex("min").build();
+		RollingRandomAccessFileAppender debugFileAppender = RollingRandomAccessFileAppender.newBuilder()
+				.setName("DebugFile")
+				.setLayout(logFilePatternLayout)
+				.setFilter(debugFilter)
+				.withFileName("logs/debug.log")
+				.withFilePattern("logs/debug-%i.log.gz")
+				.withPolicy(sizePolicy)
+				.withPolicy(startupPolicy)
+				.withStrategy(debugStrategy)
+				.build();
+		debugFileAppender.start();
+		rootLogger.addAppender(debugFileAppender);
 	}
 }
