@@ -37,7 +37,9 @@ public class ModInjector {
 	}
 
 	public void setup() {
+		System.out.println(0);
 		Consumer<ClassNode> transformer = target -> {
+			System.out.println(1);
 			//Avoid double patching things, not that this should happen
 			if (!patched.add(target.name)) {
 				System.err.println("Already patched " + target.name);
@@ -46,16 +48,22 @@ public class ModInjector {
 
 			//Skip applying class patches we veto
 			if (fixer.shouldSkip(target.name)) {
+				System.out.println("Skip");
+				System.out.println(target.name);
 				return;
 			}
 
 			//Remember the access we started with
 			Object2IntMap<String> memberToAccess = new Object2IntArrayMap<>(target.methods.size());
 			memberToAccess.defaultReturnValue(-1);
+
+			System.out.println(2);
 			for (MethodNode method : target.methods) {
+				System.out.println(3);
 				memberToAccess.put(method.name + method.desc, method.access);
 			}
 			for (FieldNode field : target.fields) {
+				System.out.println(4);
 				memberToAccess.put(field.name + ' ' + field.desc, field.access);
 			}
 
@@ -71,10 +79,17 @@ public class ModInjector {
 			target.interfaces = source.interfaces;
 			target.superName = source.superName;
 
+			System.out.println(5);
 			//Classes should be read with frames expanded (as Mixin itself does it), in which case this should all be fine
 			for (MethodNode methodNode : target.methods) {
+
+				System.out.println(6);
 				for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
+
+					System.out.println(7);
 					if (insnNode instanceof FrameNode frameNode) {
+
+						System.out.println(8);
 						if (frameNode.local == null) {
 							throw new IllegalStateException("Null locals in " + frameNode.type + " frame @ " + source.name + "#" + methodNode.name + methodNode.desc);
 						}
@@ -85,16 +100,22 @@ public class ModInjector {
 			// Lets make every class we touch match the access it used to have
 			target.access = widerAccess(target.access, source.access);
 			for (MethodNode method : target.methods) {
+
+				System.out.println(9);
 				int access = memberToAccess.getInt(method.name + method.desc);
 				if (access != -1) method.access = widerAccess(access, method.access);
 			}
 			for (FieldNode field : target.fields) {
+
+				System.out.println(10);
 				int access = memberToAccess.getInt(field.name + ' ' + field.desc);
 				if (access != -1) field.access = widerAccess(access, field.access);
 			}
 		};
 
 		for (String name : classCache.getClasses()) {
+
+			System.out.println(11);
 			ClassTinkerers.addReplacement(name, transformer);
 		}
 	}

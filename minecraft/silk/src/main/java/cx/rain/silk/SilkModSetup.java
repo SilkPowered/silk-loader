@@ -10,11 +10,14 @@ import cx.rain.silk.patcher.ClassCache;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
 
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.File;
@@ -24,11 +27,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.zip.ZipInputStream;
 
 public class SilkModSetup implements Runnable {
+	private Logger logger = LogManager.getLogger("Silk/Fixer");
+
 	@Override
 	public void run() {
 		try {
@@ -46,8 +52,7 @@ public class SilkModSetup implements Runnable {
 							try (ZipInputStream in = new ZipInputStream(Files.newInputStream(path))) {
 								file = File.createTempFile("tmp-", "");
 								file.deleteOnExit();
-								try (var out = new FileOutputStream(file))
-								{
+								try (var out = new FileOutputStream(file)) {
 									IOUtils.copy(in, out);
 								}
 							}
@@ -57,8 +62,8 @@ public class SilkModSetup implements Runnable {
 						try {
 							cache = getClassCache(path);
 						} catch (FileNotFoundException ex) {
-							System.out.println(ex.getMessage() + "Who said it is a file? ");
-							return;
+							logger.debug("Who said it is a file? ", ex);
+							continue;	// qylsb.
 						}
 
 						ClassTinkerers.addURL(file.toURI().toURL());
@@ -72,6 +77,7 @@ public class SilkModSetup implements Runnable {
 					}
 				}
 			}
+
 		} catch (Throwable e) {
 			e.printStackTrace();
 			return; //Avoid crashing out any other Fabric ASM users
@@ -93,7 +99,7 @@ public class SilkModSetup implements Runnable {
 		return ClassCache.read(path.toFile());
 	}
 
-	private static Collection<ModContainer> listMods() {
+	private static Collection<ModContainer> listMods() {	// Todo: silk: used for internal. maybe better impl.
 		return FabricLoader.getInstance().getAllMods();
 	}
 

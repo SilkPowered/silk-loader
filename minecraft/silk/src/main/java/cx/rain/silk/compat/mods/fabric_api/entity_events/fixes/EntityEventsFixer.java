@@ -5,6 +5,7 @@ import cx.rain.silk.patcher.BaseFixer;
 public class EntityEventsFixer extends BaseFixer {
 	@Override
 	public void registerFixes() {
+		System.out.println("F0");
 		registerFix("class_1309", new LivingEntityFix());
 	}
 }
