@@ -5,6 +5,6 @@ import cx.rain.silk.patcher.BaseFixer;
 public class EntityEventsFixer extends BaseFixer {
 	@Override
 	public void registerFixes() {
-		registerFix("class_1309$method_18405", new LivingEntityFix());
+		registerFix("class_1309", new LivingEntityFix());
 	}
 }

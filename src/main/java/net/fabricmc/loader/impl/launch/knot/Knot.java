@@ -291,8 +291,8 @@ public final class Knot extends FabricLauncherBase {
 		// TODO: Won't work outside of Yarn
 
 		// Silk.
-//		return Silk.lastPhase.getTo();
-		return isDevelopment ? "named" : "intermediary";
+		return "intermediary";
+//		return isDevelopment ? "named" : "intermediary";
 	}
 
 	@Override

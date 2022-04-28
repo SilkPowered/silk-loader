@@ -10,41 +10,68 @@ import cx.rain.silk.patcher.ClassCache;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.zip.ZipInputStream;
 
 public class SilkModSetup implements Runnable {
-
 	@Override
 	public void run() {
 		try {
 			// Todo: Auto detect the mod which need not remap.
 			for (ModContainer mod : listMods()) {
-				for (Path path : mod.getRootPaths()) {
-					ModInjector injector;
-					File file = path.toFile();
-					ClassCache cache = getClassCache(path);
+				if (mod instanceof ModContainerImpl) {
+					for (Path path : ((ModContainerImpl) mod).getCodeSourcePaths()) {
+						ModInjector injector;
 
-					ClassTinkerers.addURL(file.toURI().toURL());
-					BaseFixer fixer = getFixer(mod.getMetadata().getId());
-					if (fixer == null) {
-						continue;
+						// Silk: well, here it is. Process jar in jar.
+						File file;
+						try {
+							file = path.toFile();
+						} catch (UnsupportedOperationException ex) {
+							try (ZipInputStream in = new ZipInputStream(Files.newInputStream(path))) {
+								file = File.createTempFile("tmp-", "");
+								file.deleteOnExit();
+								try (var out = new FileOutputStream(file))
+								{
+									IOUtils.copy(in, out);
+								}
+							}
+						}
+
+						ClassCache cache;
+						try {
+							cache = getClassCache(path);
+						} catch (FileNotFoundException ex) {
+							System.out.println(ex.getMessage() + "Who said it is a file? ");
+							return;
+						}
+
+						ClassTinkerers.addURL(file.toURI().toURL());
+						BaseFixer fixer = getFixer(mod.getMetadata().getId());
+						if (fixer == null) {
+							continue;
+						}
+
+						injector = new ModInjector(cache, fixer);
+						injector.setup();
 					}
-
-					injector = new ModInjector(cache, fixer);
-					injector.setup();
 				}
 			}
-
 		} catch (Throwable e) {
 			e.printStackTrace();
 			return; //Avoid crashing out any other Fabric ASM users
@@ -59,19 +86,15 @@ public class SilkModSetup implements Runnable {
 	private BaseFixer getFixer(String id) {
 		// Todo: from config files.
 		switch (id) {
-			case "fabric-entity-events":
+			case "fabric-entity-events-v1":
 				return new EntityEventsFixer();
 			default:
 				return null;
 		}
 	}
 
-	private static ClassCache getClassCache(Path path) {
-		try {
-			return ClassCache.read(path.toFile());
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
+	private static ClassCache getClassCache(Path path) throws IOException {
+		return ClassCache.read(path.toFile());
 	}
 
 	private static Collection<ModContainer> listMods() {
