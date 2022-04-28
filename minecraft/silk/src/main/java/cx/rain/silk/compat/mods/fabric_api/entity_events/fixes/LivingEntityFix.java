@@ -11,8 +11,11 @@ import org.objectweb.asm.tree.MethodNode;
 public class LivingEntityFix implements ClassFixer {
 	@Override
 	public void fix(ClassNode classNode, ClassNode old) {
+		System.out.println("1");
 		for (MethodNode methodNode : classNode.methods) {
+			System.out.println("2");
 			for (int i = 0; i < methodNode.instructions.size(); i++) {
+				System.out.println("3");
 				AbstractInsnNode insnNode = methodNode.instructions.get(i);
 
 				if (insnNode instanceof MethodInsnNode) {

@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SpigotJarRemapper extends RemapperBase {
+public class SpigotJarRemapper {
 	private static final Pattern MC_LV_PATTERN = Pattern.compile("\\$\\$\\d+");
 
 	private Path outputDir;

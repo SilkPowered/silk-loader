@@ -76,17 +76,13 @@ public class SilkModSetup implements Runnable {
 			e.printStackTrace();
 			return; //Avoid crashing out any other Fabric ASM users
 		}
-
-		// Todo: form config files.
-		if (isPresent("fabric-entity-events")) {
-			Mixins.addConfiguration("silk.compat.fabric_api.entity_events.mixins.json");
-		}
 	}
 
 	private BaseFixer getFixer(String id) {
 		// Todo: from config files.
 		switch (id) {
 			case "fabric-entity-events-v1":
+				Mixins.addConfiguration("silk.compat.fabric_api.entity_events.mixins.json");
 				return new EntityEventsFixer();
 			default:
 				return null;

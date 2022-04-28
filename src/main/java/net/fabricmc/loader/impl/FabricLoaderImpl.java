@@ -258,17 +258,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// runtime mod remapping
 
-		Path silkCache = gameDir.resolve(Silk.SILK_CACHE_DIR);
+		Path silkCache = Silk.SILK_CACHE_DIR;
 
 		Path silkOutput;
 		if (phase.shouldActuallyLoad()) {	// For move mods to output dir.
-			silkOutput = silkCache.resolve(Silk.SILK_PROCESSED_MODS_DIR);
+			silkOutput = Silk.SILK_PROCESSED_MODS_DIR;
 		} else {
 			silkOutput = silkCache.resolve(phase.getFrom() + "-" + phase.getTo());
 		}
 
 		if (requiresRemap) {
-			RuntimeModRemapper.remap(modCandidates, silkOutput.resolve(Silk.SILK_TEMP_DIR), silkOutput, SilkNamedMappingConfiguration.get(phase), phase.getFrom(), phase.getTo());	// Silk: Pass arguments in.
+			RuntimeModRemapper.remap(modCandidates, Silk.SILK_TEMP_DIR, silkOutput, SilkNamedMappingConfiguration.get(phase), phase.getFrom(), phase.getTo());	// Silk: Pass arguments in.
 		}
 
 		// shuffle mods in-dev to reduce the risk of false order reliance, apply late load requests
