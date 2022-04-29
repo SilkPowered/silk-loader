@@ -79,10 +79,18 @@ public class Silk {
 			Log.info(LogCategory.GAME_REMAP, "Server with official mapping found, use it.");
 		}
 
-		new SpigotJarRemapper()
-				.withMappings(Knot.class.getClassLoader().getResource("mappings/mappings.tiny"), "official", "intermediary")
+
+		SpigotJarRemapper spigotRemapper2 = new SpigotJarRemapper()
 				.addJars(Arrays.stream(serverCache.listFiles()).map(File::toPath).collect(Collectors.toList()))
-				.setOutput(SILK_SERVER_DIR)
-				.doRemap();
+				.setOutput(SILK_SERVER_DIR);
+
+		Path o2i = Paths.get(".silk/silk-1.18.2-o2i.tiny");
+		if (o2i.toFile().exists()) {
+			spigotRemapper2.withMappings(o2i, "official", "intermediary");
+		} else {
+			spigotRemapper2.withMappings(Knot.class.getClassLoader().getResource("mappings/mappings.tiny"), "official", "intermediary");
+		}
+
+		spigotRemapper2.doRemap();
 	}
 }

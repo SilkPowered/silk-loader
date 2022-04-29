@@ -52530,7 +52530,7 @@ c	axy	net/minecraft/class_1309	net/minecraft/world/entity/LivingEntity
 	m	()V	dV	method_6069	removeEffectParticles
 	m	()V	D	method_6072	updateSwimAmount
 	m	(FF)F	e	method_6031	tickHeadTurn
-	m	(Lgj;)V	f	method_18404	method_18404
+	m	(Lgj;)V	lambda$13	method_18404	method_18404
 	m	()V	ee	method_23883	dropExperience
 	m	(F)V	q	method_6056	hurtCurrentlyUsedShield
 	m	()F	em	method_6063	getMaxHealth
@@ -52629,7 +52629,7 @@ c	axy	net/minecraft/class_1309	net/minecraft/world/entity/LivingEntity
 	m	(Laxk;)Z	z	method_6121	doHurtTarget
 	m	(Lbli;)V	a	method_29499	onItemPickup
 	m	(Lawg;)V	c	method_6019	startUsingItem
-	m	(Lok;Lgj;)V	a	method_18393	method_18393
+	m	(Lok;Lgj;)V	lambda$2	method_18393	method_18393
 	m	()Z	dJ	method_27071	shouldDropLoot
 	m	(Laxe;ZLaxk;)V	a	method_6009	onEffectUpdated
 	m	()V	eB	method_6093	goDownInWater
@@ -52675,13 +52675,13 @@ c	axy	net/minecraft/class_1309	net/minecraft/world/entity/LivingEntity
 	m	()Z	dy	method_27302	canSpawnSoulSpeedParticle
 	m	()Lawg;	eN	method_6058	getUsedItemHand
 	m	()F	ey	method_6106	getJumpPower
-	m	(Laxy;)V	h	method_20238	method_20238
+	m	(Laxy;)V	lambda$1	method_20238	method_20238
 	m	()V	dS	method_6050	tickEffects
 	m	(Laxe;Laxk;)V	a	method_6020	onEffectAdded
-	m	(Lgj;)Ldpo;	g	method_20477	method_20477
+	m	(Lgj;)Ldpo;	lambda$14	method_20477	method_20477
 	m	(Lgj;)V	a	method_18392	setPosToBed
 	m	()V	eK	method_6008	updateEffectVisibility
-	m	(Lgj;)Ljava/lang/Boolean;	h	method_18405	method_18405
+	m	(Lgj;)Ljava/lang/Boolean;	lambda$11	method_18405	method_18405
 	m	(Lbuw;Lcav;Laxy;)V	a	method_18865	addEatEffect
 	m	(F)V	t	method_6073	setAbsorptionAmount
 	m	(I)V	q	method_21755	setStingerCount
@@ -52741,7 +52741,7 @@ c	axy	net/minecraft/class_1309	net/minecraft/world/entity/LivingEntity
 	m	()V	ed	method_16078	dropEquipment
 	m	(FF)I	d	method_23329	calculateFallDamage
 	m	(Lri;)V	a	method_33579	recreateFromPacket
-	m	(Lok;Lpd;)V	a	method_28305	method_28305
+	m	(Lok;Lpd;)V	lambda$4	method_28305	method_28305
 	m	(I)Laxp;	d	method_32322	getEquipmentSlot
 	m	(Lbuw;)V	a	method_37119	updateUsingItem
 	m	(Laxe;)Z	b	method_6092	addEffect
@@ -52763,7 +52763,7 @@ c	axy	net/minecraft/class_1309	net/minecraft/world/entity/LivingEntity
 	m	(Layu;)Layv;	a	method_5996	getAttribute
 	m	(ZLawu;)Ldlc$a;	a	method_16079	createLootContext
 	m	(F)V	b	method_6025	heal
-	m	(Laxp;Lbuw;)Z	d	method_32323	method_32323
+	m	(Laxp;Lbuw;)Z	lambda$15	method_32323	method_32323
 	m	(Laxy;)V	i	method_26084	method_26084
 c	axy$1	net/minecraft/class_1309$1	net/minecraft/world/entity/LivingEntity$1
 	f	[I	b	field_19169	$SwitchMap$net$minecraft$world$entity$EquipmentSlot
@@ -59152,7 +59152,7 @@ c	bop	net/minecraft/class_1667	net/minecraft/world/entity/projectile/Arrow
 	m	(Lbuw;)V	a	method_7459	setEffectsFromItem
 	m	()V	A	method_7462	updateColor
 	m	(I)V	b	method_7461	makeParticle
-	m	(Laxe;)V	a	method_7463	addEffect
+	m	(Laxe;)V	lambda$5	method_7463	addEffect
 	m	()I	w	method_7460	getColor
 	m	(I)V	c	method_7465	setFixedColor
 c	boo	net/minecraft/class_1668	net/minecraft/world/entity/projectile/AbstractHurtingProjectile
@@ -64752,7 +64752,7 @@ c	cav$2	net/minecraft/class_1937$2	net/minecraft/world/level/Level$2
 c	cdq$3	net/minecraft/class_2248$3	net/minecraft/world/level/block/Block$3
 c	cdq$4	net/minecraft/class_2248$4	net/minecraft/world/level/block/Block$4
 c	ceo$DoubleInventory	net/minecraft/class_2281$class_s5	net/minecraft/world/level/block/ChestBlock$DoubleInventory
-c	cnm$LactrenInventory	net/minecraft/class_3722$class_s6	net/minecraft/world/level/block/entity/LecternBlockEntity$LactrenInventory
+c	cnm$LecternInventory	net/minecraft/class_3722$class_s6	net/minecraft/world/level/block/entity/LecternBlockEntity$LecternInventory
 c	div$3	net/minecraft/class_3609$3	net/minecraft/world/level/material/FlowingFluid$3
 c	ho$7$1	net/minecraft/class_2357$7$1	net/minecraft/core/dispenser/DispenseItemBehavior$15$1
 c	ho$8$1	net/minecraft/class_2357$8$1	net/minecraft/core/dispenser/DispenseItemBehavior$16$1
